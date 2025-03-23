@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using AuthMetodology.Application.Interfaces;
 using AuthMetodology.Application.DTO;
-using AuthMetodology.Application.Exceptions;
 namespace AuthMetodology.API.Controllers
 {
     [Controller]
