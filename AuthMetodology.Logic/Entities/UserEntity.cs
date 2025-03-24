@@ -16,6 +16,12 @@ namespace AuthMetodology.Logic.Entities
         [Column("email")]
         public required string Email { get; set; }
 
+        [Column("refreshToken")]
+        public string RefreshToken { get; set; } = string.Empty;
+
+        [Column("refreshTokenExpiry")]
+        public DateTime RefreshTokenExpiry { get; set; }
+
         public static UserEntity Create(Guid id,string passwordHash, string email)
         {
             return new UserEntity() { Email = email, Id = id, PasswordHash = passwordHash };
