@@ -10,9 +10,11 @@ namespace AuthMetodology.Application.Interfaces
 {
     public interface IUserService
     {
-        Task RegisterUserAsync(RegisterUserDto user);
+        Task<AuthResponseDto> RegisterUserAsync(RegisterUserRequestDto user);
 
-        Task<string> LoginAsync(LoginUserDto userDto);
+        Task<AuthResponseDto> LoginAsync(LoginUserRequestDto userDto);
+
+        Task<RefreshResponseDto> UpdateUserTokensAsync(Guid id, RefreshTokenRequestDto requestDto);
 
     }
 }
