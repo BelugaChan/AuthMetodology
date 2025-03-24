@@ -36,5 +36,27 @@ namespace AuthMetodology.Persistence.Repositories
 
             return mapper.Map<User>(userEntity);
         }
+
+        public async Task<User> GetById(Guid id)
+        {
+            var userEntity = await context.Users.AsNoTracking().FirstOrDefaultAsync(user => user.Id == id)
+                ?? default;
+
+            return mapper.Map<User>(userEntity);
+        }
+
+        public async Task UpdateUser(Guid id, string refresh, DateTime expires)
+        {
+            var userEntity = await context.Users.AsNoTracking().FirstOrDefaultAsync(entity => entity.Id ==  id)
+                ?? default;
+            if (userEntity is not null) 
+            {
+                userEntity.RefreshToken = refresh;
+                userEntity.RefreshTokenExpiry = expires;
+
+                context.Update(userEntity);
+                await context.SaveChangesAsync();
+            }         
+        }
     }
 }
