@@ -2,7 +2,7 @@
 
 namespace AuthMetodology.Application.DTO
 {
-    public class LoginUserDto
+    public class LoginUserRequestDto
     {
         [Required(ErrorMessage = "Email is required")]
         [Length(3, 30, ErrorMessage = "Must be between 5 and 30 characters")]
