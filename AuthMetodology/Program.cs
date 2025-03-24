@@ -1,16 +1,18 @@
-
+using AuthMetodology.API.CookieCreator;
+using AuthMetodology.API.Interfaces;
 using AuthMetodology.API.Middleware;
 using AuthMetodology.Application.Interfaces;
 using AuthMetodology.Application.Services;
-using AuthMetodology.Infrastructure;
+using AuthMetodology.Infrastructure.Hashers;
 using AuthMetodology.Infrastructure.Interfaces;
+using AuthMetodology.Infrastructure.Models;
 using AuthMetodology.Infrastructure.Providers;
 using AuthMetodology.Persistence.Data;
 using AuthMetodology.Persistence.Interfaces;
 using AuthMetodology.Persistence.Profiles;
 using AuthMetodology.Persistence.Repositories;
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 namespace AuthMetodology.API
 {
     public class Program
@@ -27,11 +29,16 @@ namespace AuthMetodology.API
             builder.Services.AddSwaggerGen();
 
             builder.Services.Configure<JWTOptions>(builder.Configuration.GetSection(nameof(JWTOptions)));
+            builder.Services.Configure<GoogleOptions>(builder.Configuration.GetSection(nameof(GoogleOptions)));
+
+            builder.Services.AddApiAuthentication(builder.Services.BuildServiceProvider().GetRequiredService<IOptions<JWTOptions>>());
 
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IJWTProvider, JWTProvider>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+            builder.Services.AddScoped<ICookieCreator, CookieTokenCreator>();
+            builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddAutoMapper(typeof(UserProfile).Assembly);
 
