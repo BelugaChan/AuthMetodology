@@ -1,4 +1,4 @@
-﻿using AuthMetodology.Infrastructure;
+﻿using AuthMetodology.Infrastructure.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -8,7 +8,7 @@ namespace AuthMetodology.API
 {
     public static class ApiExtensions
     {
-        public static void AddAppiAuthentication(
+        public static void AddApiAuthentication(
             this IServiceCollection services,
             IOptions<JWTOptions> options)
         {
