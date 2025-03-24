@@ -12,5 +12,9 @@ namespace AuthMetodology.Persistence.Interfaces
         Task Add(User user);
 
         Task<User> GetByEmail(string email);
+
+        Task<User> GetById(Guid id);
+
+        Task UpdateUser(Guid id, string refresh, DateTime expires);
     }
 }
