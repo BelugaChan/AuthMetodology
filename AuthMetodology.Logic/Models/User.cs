@@ -8,11 +8,13 @@ namespace AuthMetodology.Logic.Models
 {
     public class User
     {
-        private User(Guid id, string passwordHash, string email)
+        private User(Guid id, string passwordHash, string email, string refreshToken, DateTime refreshTokenExpiry)
         {
             Id = id;
             PasswordHash = passwordHash;
             Email = email;
+            RefreshToken = refreshToken;
+            RefreshTokenExpiry = refreshTokenExpiry;
         }
 
         public Guid Id { get; set; }
@@ -21,7 +23,11 @@ namespace AuthMetodology.Logic.Models
 
         public string Email { get; private set; }
 
-        public static User Create(Guid id, string passwordHash, string email) =>
-            new User(id, passwordHash, email);
+        public string RefreshToken { get; set; }
+
+        public DateTime RefreshTokenExpiry { get; set; }
+
+        public static User Create(Guid id, string passwordHash, string email, string refreshToken, DateTime refreshTokenExpiry) =>
+            new User(id, passwordHash, email, refreshToken, refreshTokenExpiry);
     }
 }
