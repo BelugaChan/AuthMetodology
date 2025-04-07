@@ -1,4 +1,4 @@
-﻿using AuthMetodology.Logic.Entities;
+﻿using AuthMetodology.Logic.Entities.v1;
 using Microsoft.EntityFrameworkCore;
 namespace AuthMetodology.Persistence.Data
 {
@@ -8,7 +8,6 @@ namespace AuthMetodology.Persistence.Data
             : base(options)
         {
         }
-
-        public DbSet<UserEntity> Users { get; set; }
+        public DbSet<UserEntityV1> Users { get; set; }
     }
 }
