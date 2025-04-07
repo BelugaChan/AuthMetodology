@@ -1,20 +1,16 @@
-﻿using AuthMetodology.Logic.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AuthMetodology.Logic.Models.v1;
+using AuthMetodology.Logic.Entities.v1;
 
 namespace AuthMetodology.Persistence.Interfaces
 {
     public interface IUserRepository
     {
-        Task Add(User user);
+        Task AddAsync(UserEntityV1 user);
 
-        Task<User> GetByEmail(string email);
+        Task<UserEntityV1?> GetByEmailAsync(string email);
 
-        Task<User> GetById(Guid id);
+        Task<UserEntityV1?> GetByIdAsync(Guid id);
 
-        Task UpdateUser(Guid id, string refresh, DateTime expires);
+        Task<bool> UpdateUserAsync(Guid id, Action<UserEntityV1> updateUser);
     }
 }
