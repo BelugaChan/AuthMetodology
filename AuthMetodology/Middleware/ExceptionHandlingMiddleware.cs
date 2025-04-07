@@ -1,6 +1,7 @@
 ﻿using AuthMetodology.Application.Exceptions;
 using Google.Apis.Auth;
 using System.Net;
+using Microsoft.EntityFrameworkCore;
 
 namespace AuthMetodology.API.Middleware
 {
@@ -32,6 +33,10 @@ namespace AuthMetodology.API.Middleware
                 UserNotFoundException _ => new ExceptionResponse(HttpStatusCode.BadRequest, "Пользователь с таким id не существует"),
                 InvalidRefreshTokenException _ => new ExceptionResponse(HttpStatusCode.Unauthorized, "Invalid refresh token"),
                 InvalidJwtException _ => new ExceptionResponse(HttpStatusCode.BadRequest, "Invalid token (called from GoogleLogin)"),
+                IncorrectGoogleCredentialsException _ => new ExceptionResponse(HttpStatusCode.BadRequest, "Incorrect GoogleId or UserEmail"),
+                DbUpdateException _ => new ExceptionResponse(HttpStatusCode.InternalServerError, "DB update wasn't successfull"),
+                CacheNotFoundException _ => new ExceptionResponse(HttpStatusCode.InternalServerError, "Data in cache wasn't found"),
+                TwoFaCodeExpireException _ => new ExceptionResponse(HttpStatusCode.InternalServerError, "Two fa code has been expired"),
                 _ => new ExceptionResponse(HttpStatusCode.InternalServerError, "Internal server error. Please retry later")
             };
 
