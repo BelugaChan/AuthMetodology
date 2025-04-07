@@ -9,6 +9,8 @@ namespace AuthMetodology.API.CookieCreator
         {
             this.httpContextAccessor = httpContextAccessor;
         }
+        
+
         public void CreateTokenCookie(string key, string accessToken, DateTime expires)
         {
             httpContextAccessor.HttpContext?.Response.Cookies.Append(key, accessToken, new CookieOptions
