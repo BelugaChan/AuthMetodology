@@ -1,6 +1,6 @@
 ﻿using AuthMetodology.Infrastructure.Interfaces;
 using AuthMetodology.Infrastructure.Models;
-using AuthMetodology.Logic.Models;
+using AuthMetodology.Logic.Models.v1;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,7 +17,7 @@ namespace AuthMetodology.Infrastructure.Providers
         {
             this.options = options.Value;
         }
-        public string GenerateToken(User user)
+        public string GenerateToken(UserV1 user)
         {
             Claim[] claims = [new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())];
 
