@@ -1,8 +1,6 @@
-﻿using AuthMetodology.Logic.Entities;
-using AuthMetodology.Logic.Models;
+﻿using AuthMetodology.Logic.Entities.v1;
 using AuthMetodology.Persistence.Data;
 using AuthMetodology.Persistence.Interfaces;
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthMetodology.Persistence.Repositories
@@ -10,53 +8,42 @@ namespace AuthMetodology.Persistence.Repositories
     public class UserRepository : IUserRepository
     {
         private readonly UserDBContext context;
-        private readonly IMapper mapper;
-        public UserRepository(UserDBContext context, IMapper mapper)
+        public UserRepository(UserDBContext context)
         {
-            this.mapper = mapper;
             this.context = context;
         }
-        public async Task Add(User user)
+        public async Task AddAsync(UserEntityV1 userEntity)
         {
-            //var userEntity = new UserEntity()
-            //{
-            //    Id = user.Id,
-            //    UserName = user.UserName,
-            //    Email = user.Email,
-            //    PasswordHash = user.PasswordHash
-            //};
-            await context.Users.AddAsync(UserEntity.Create(user.Id, user.PasswordHash, user.Email));
+            await context.Users.AddAsync(userEntity);
             await context.SaveChangesAsync();
         }
 
-        public async Task<User> GetByEmail(string email)
+        public async Task<UserEntityV1?> GetByEmailAsync(string email)
         {
-            var userEntity = await context.Users.AsNoTracking().FirstOrDefaultAsync(user => user.Email == email)
-                ?? default;
-
-            return mapper.Map<User>(userEntity);
+            var userEntity = await context.Users.AsNoTracking().FirstOrDefaultAsync(user => user.Email == email);
+            if (userEntity is null)
+                return null;
+            return userEntity;
         }
 
-        public async Task<User> GetById(Guid id)
+        public async Task<UserEntityV1?> GetByIdAsync(Guid id)
         {
-            var userEntity = await context.Users.AsNoTracking().FirstOrDefaultAsync(user => user.Id == id)
-                ?? default;
-
-            return mapper.Map<User>(userEntity);
+            //mapper.Map<UserV1>(userEntity)
+            var userEntity = await context.Users.AsNoTracking().FirstOrDefaultAsync(user => user.Id == id);
+            if (userEntity is null)
+                return null;
+            return userEntity;
         }
 
-        public async Task UpdateUser(Guid id, string refresh, DateTime expires)
+        public async Task<bool> UpdateUserAsync(Guid id, Action<UserEntityV1> updateUser)
         {
-            var userEntity = await context.Users.AsNoTracking().FirstOrDefaultAsync(entity => entity.Id ==  id)
-                ?? default;
-            if (userEntity is not null) 
-            {
-                userEntity.RefreshToken = refresh;
-                userEntity.RefreshTokenExpiry = expires;
-
-                context.Update(userEntity);
-                await context.SaveChangesAsync();
-            }         
+            var userEntity = await context.Users.FindAsync(id);
+            if (userEntity is null)
+                return false;
+            
+            updateUser(userEntity);
+            await context.SaveChangesAsync();
+            return true;
         }
     }
 }
