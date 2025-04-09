@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace AuthMetodology.API
+namespace AuthMetodology.API.Extensions
 {
     public static class ApiExtensions
     {
@@ -16,7 +16,7 @@ namespace AuthMetodology.API
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                 { //будет осуществляться проверка, есть ли в headers токен
-                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters() 
+                    options.TokenValidationParameters = new TokenValidationParameters() 
                     {
                         ValidateIssuer = false,
                         ValidateAudience = false,

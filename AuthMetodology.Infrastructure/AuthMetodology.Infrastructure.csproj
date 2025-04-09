@@ -9,10 +9,18 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.14" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
+    <PackageReference Include="StackExchange.Redis" Version="2.8.31" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AuthMetodology.Logic\AuthMetodology.Logic.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="grafana-data\" />
+    <Folder Include="redis-data\" />
+    <Folder Include="rabbit-data\" />
   </ItemGroup>
 
 </Project>

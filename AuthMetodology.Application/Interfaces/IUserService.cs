@@ -1,4 +1,4 @@
-﻿using AuthMetodology.Application.DTO;
+﻿using AuthMetodology.Application.DTO.v1;
 using AuthMetodology.Logic.Models;
 using System;
 using System.Collections.Generic;
@@ -10,9 +10,11 @@ namespace AuthMetodology.Application.Interfaces
 {
     public interface IUserService
     {
-        Task RegisterUserAsync(RegisterUserDto user);
+        Task<AuthResponseDtoV1> RegisterUserAsync(RegisterUserRequestDtoV1 user);
 
-        Task<string> LoginAsync(LoginUserDto userDto);
+        Task<AuthResponseDtoV1> LoginAsync(LoginUserRequestDtoV1 userDto);
+
+        Task<RefreshResponseDtoV1> UpdateUserTokensAsync(Guid id, RefreshTokenRequestDtoV1 requestDto);
 
     }
 }

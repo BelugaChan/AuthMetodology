@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.69.0" />
+    <PackageReference Include="MailKit" Version="4.11.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AuthMetodology.Infrastructure\AuthMetodology.Infrastructure.csproj" />
     <ProjectReference Include="..\AuthMetodology.Logic\AuthMetodology.Logic.csproj" />
     <ProjectReference Include="..\AuthMetodology.Persistence\AuthMetodology.Persistence.csproj" />

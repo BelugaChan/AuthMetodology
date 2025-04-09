@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AuthMetodology.Application.DTO
+namespace AuthMetodology.Application.DTO.v1
 {
-    public class RegisterUserDto
+    public class RegisterUserRequestDtoV1
     {
         [Required(ErrorMessage = "Email is required")]
         [Length(3, 30, ErrorMessage = "Must be between 5 and 30 characters")]

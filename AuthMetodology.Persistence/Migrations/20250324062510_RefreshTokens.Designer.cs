@@ -3,6 +3,7 @@ using System;
 using AuthMetodology.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AuthMetodology.Persistence.Migrations
 {
     [DbContext(typeof(UserDBContext))]
-    partial class UserDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250324062510_RefreshTokens")]
+    partial class RefreshTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace AuthMetodology.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("AuthMetodology.Logic.Entities.v1.UserEntityV1", b =>
+            modelBuilder.Entity("AuthMetodology.Logic.Entities.UserEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -33,15 +36,6 @@ namespace AuthMetodology.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("email");
-
-                    b.Property<string>("IdGoogle")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("idGoogle");
-
-                    b.Property<bool>("Is2FaEnabled")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is2FAEnabled");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
