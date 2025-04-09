@@ -1,5 +1,4 @@
-﻿using AuthMetodology.Logic.Models.v1;
-using AuthMetodology.Logic.Entities.v1;
+﻿using AuthMetodology.Logic.Entities.v1;
 
 namespace AuthMetodology.Persistence.Interfaces
 {
