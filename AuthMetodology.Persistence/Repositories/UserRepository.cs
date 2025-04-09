@@ -8,10 +8,8 @@ namespace AuthMetodology.Persistence.Repositories
     public class UserRepository : IUserRepository
     {
         private readonly UserDBContext context;
-        public UserRepository(UserDBContext context)
-        {
-            this.context = context;
-        }
+        public UserRepository(UserDBContext context) => this.context = context;
+
         public async Task AddAsync(UserEntityV1 userEntity)
         {
             await context.Users.AddAsync(userEntity);
