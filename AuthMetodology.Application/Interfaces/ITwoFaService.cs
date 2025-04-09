@@ -13,10 +13,10 @@ namespace AuthMetodology.Application.Interfaces
         Task EnableTwoFaStatusAsync(Guid id);
         Task DisableTwoFaStatusAsync(Guid id);
 
-        Task<AuthResponseDtoV1> VerifyTwoFaCodeAsync(TwoFaRequestDto requestDto);
+        Task<AuthResponseDtoV1> VerifyTwoFaCodeAsync(TwoFaRequestDtoV1 requestDto);
 
-        Task SendTwoFaAsync(SendTwoFaRequestDto requestDto);
+        Task SendTwoFaAsync(SendTwoFaRequestDtoV1 requestDto);
 
-        Task SendTwoFaAsync(ReSendTwoFaRequestDto requestDto);
+        Task SendTwoFaAsync(ReSendTwoFaRequestDtoV1 requestDto);
     }
 }
