@@ -1,4 +1,3 @@
-using Asp.Versioning;
 using AuthMetodology.API.CookieCreator;
 using AuthMetodology.API.Extensions;
 using AuthMetodology.API.Interfaces;
@@ -17,6 +16,9 @@ using AuthMetodology.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Sinks.Grafana.Loki;
+using StackExchange.Redis;
 namespace AuthMetodology.API
 {
     public class Program
@@ -28,6 +30,12 @@ namespace AuthMetodology.API
             //add API versioning
             builder.Services.AddVersioning();
 
+            var logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(builder.Configuration)
+                .CreateLogger();
+
+            builder.Logging.ClearProviders();
+            builder.Logging.AddSerilog(logger);
 
             // Add services to the container.
 
@@ -35,7 +43,16 @@ namespace AuthMetodology.API
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API - V1", Version = "v1.0" })
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API - V1", Version = "v1.0" });
+
+                var basePath = AppContext.BaseDirectory;
+                var xmlPath = Path.Combine(basePath, "AuthMetodology.xml");
+                c.IncludeXmlComments(xmlPath);
+            }
+                
+
+                
             );
 
             builder.Services.Configure<JWTOptions>(builder.Configuration.GetSection(nameof(JWTOptions)));
@@ -52,6 +69,9 @@ namespace AuthMetodology.API
             builder.Services.AddScoped<ICookieCreator, CookieTokenCreator>();
             builder.Services.AddScoped<IRabbitMqService, RabbitMqService>();
             builder.Services.AddScoped<IRedisService, RedisService>();
+            builder.Services.AddScoped<ITwoFaProvider, TwoFaProvider>();
+            builder.Services.AddScoped<ITwoFaService, TwoFaService>();
+            builder.Services.AddScoped<IGoogleService, GoogleService>();
             builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddAutoMapper(typeof(UserProfileV1).Assembly);
@@ -60,11 +80,8 @@ namespace AuthMetodology.API
             var connectionString = builder.Configuration.GetConnectionString("PostgresConnection");
             builder.Services.AddDbContext<UserDBContext>(opt => opt.UseNpgsql(connectionString));
             //Cache
-            builder.Services.AddStackExchangeRedisCache(opt =>
-            {
-                var connection = builder.Configuration.GetConnectionString("Redis");
-                opt.Configuration = connection;
-            });
+            builder.Services.AddSingleton<IConnectionMultiplexer>(
+                ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection")));
 
             var app = builder.Build();
 
@@ -75,7 +92,7 @@ namespace AuthMetodology.API
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();
