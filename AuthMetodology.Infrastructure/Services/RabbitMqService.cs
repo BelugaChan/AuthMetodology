@@ -11,20 +11,20 @@ public class RabbitMqService : IRabbitMqService
 {
     private readonly RabbitMqOptions options;
     public RabbitMqService(IOptions<RabbitMqOptions> options) =>  this.options = options.Value;
-    public void SendMessage(object obj)
+    public async Task SendMessageAsync(object obj, string queueName)
     {
         var message = JsonSerializer.Serialize(obj);
-        SendMessage(message);
+        await SendMessageAsync(message, queueName);
     }
 
-    public void SendMessage(string message)
+    public async Task SendMessageAsync(string message, string queueName)
     {
-        var factory = new ConnectionFactory(){HostName = options.Host};
-        using var connection = factory.CreateConnection();
-        using (var channel = connection.CreateModel())
+        var factory = new ConnectionFactory(){HostName = options.Host, Port=options.Port};
+        using var connection = await factory.CreateConnectionAsync();
+        using (var channel = await connection.CreateChannelAsync())
         {
-            channel.QueueDeclare(
-                queue: options.Queue,
+            await channel.QueueDeclareAsync(
+                queue: queueName,
                 durable: false,
                 exclusive: false,
                 autoDelete:  false,
@@ -32,7 +32,7 @@ public class RabbitMqService : IRabbitMqService
                 );
             var body = Encoding.UTF8.GetBytes(message);
 
-            channel.BasicPublish(exchange: "", routingKey: options.Queue, body: body);
+            await channel.BasicPublishAsync(exchange: "", routingKey: queueName, body: body);
         };
 
     }
