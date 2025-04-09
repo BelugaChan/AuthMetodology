@@ -44,8 +44,8 @@ namespace AuthMetodology.Application.Services
         public async Task<AuthResponseDtoV1> CreateGoogleUserAsync(GoogleJsonWebSignature.Payload payload)
         {
             var existingUserEntity = await userRepository.GetByEmailAsync(payload.Email);
-            var existingUser = mapper.Map<UserV1>(existingUserEntity);
-            if(existingUser is null)
+            
+            if(existingUserEntity is null)
             {
                 var refreshToken = jWtProvider.GenerateRefreshToken();
                 var newUser = UserV1.Create(Guid.NewGuid(), string.Empty, payload.Email, refreshToken, DateTime.UtcNow.AddDays(optionsJwt.RefreshTokenExpiryDays), payload.Subject, false);
@@ -55,20 +55,19 @@ namespace AuthMetodology.Application.Services
 
                 return new AuthResponseDtoV1 { UserId=newUser.Id, AccessToken = token, RefreshToken = token, RequiresTwoFa = false};
             }
-            else
-            {
-                throw new ExistMailException();
-            }
-            
+            throw new ExistMailException();
+
         }
 
         public async Task<AuthResponseDtoV1> LoginGoogleUserAsync(GoogleJsonWebSignature.Payload payload)
         {
             var existingUserEntity = await userRepository.GetByEmailAsync(payload.Email);
-            var existingUser = mapper.Map<UserV1>(existingUserEntity);
-            if(existingUser is not null)
+            
+            if(existingUserEntity is not null)
             {
-                if(existingUser.Email == payload.Email
+                var existingUser = mapper.Map<UserV1>(existingUserEntity);
+
+                if (existingUser.Email == payload.Email
                     && existingUser.IdGoogle == payload.Subject)
                 {
                     var refreshToken = jWtProvider.GenerateRefreshToken();
