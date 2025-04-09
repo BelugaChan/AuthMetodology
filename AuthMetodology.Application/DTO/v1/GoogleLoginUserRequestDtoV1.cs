@@ -8,6 +8,6 @@ namespace AuthMetodology.Application.DTO.v1
 {
     public class GoogleLoginUserRequestDtoV1
     {
-        public string IdToken { get; set; }
+        public required string IdToken { get; set; }
     }
 }
