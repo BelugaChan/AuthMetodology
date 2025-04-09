@@ -8,8 +8,12 @@ namespace AuthMetodology.API.Middleware
     public class ExceptionHandlingMiddleware
     {
         private readonly RequestDelegate _next;
-
-        public ExceptionHandlingMiddleware(RequestDelegate next) => _next = next;
+        private readonly ILogger<ExceptionHandlingMiddleware> logger;
+        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger) 
+        {
+            _next = next;
+            this.logger = logger;
+        }
         
         public async Task InvokeAsync(HttpContext context)
         {
@@ -19,6 +23,7 @@ namespace AuthMetodology.API.Middleware
             }
             catch (Exception ex)
             {
+                logger.LogError("Exception was thrown.\nMessage: {Message}\nSource: {Source}",ex.Message, ex.Source);
                 await HandleExceptionAsync(context, ex);                
             }
         }
@@ -27,7 +32,7 @@ namespace AuthMetodology.API.Middleware
         {
             ExceptionResponse response = exception switch
             {
-                ExistMailException _ => new ExceptionResponse(HttpStatusCode.BadRequest, "Пользователь с такой почтой уже существует"),
+                ExistMailException _ => new ExceptionResponse(HttpStatusCode.Conflict, "Пользователь с такой почтой уже существует"),
                 IncorrectPasswordException _ => new ExceptionResponse(HttpStatusCode.Unauthorized, "Неверный пароль"),
                 IncorrectMailException _ => new ExceptionResponse(HttpStatusCode.BadRequest, "Пользователь с такой почтой не найден в системе"),
                 UserNotFoundException _ => new ExceptionResponse(HttpStatusCode.BadRequest, "Пользователь с таким id не существует"),
@@ -37,7 +42,8 @@ namespace AuthMetodology.API.Middleware
                 DbUpdateException _ => new ExceptionResponse(HttpStatusCode.InternalServerError, "DB update wasn't successfull"),
                 CacheNotFoundException _ => new ExceptionResponse(HttpStatusCode.InternalServerError, "Data in cache wasn't found"),
                 TwoFaCodeExpireException _ => new ExceptionResponse(HttpStatusCode.InternalServerError, "Two fa code has been expired"),
-                _ => new ExceptionResponse(HttpStatusCode.InternalServerError, "Internal server error. Please retry later")
+                InvalidTwoFaStatusException ex => new ExceptionResponse(HttpStatusCode.Conflict, ex.Message),
+                _ => new ExceptionResponse(HttpStatusCode.InternalServerError, $"Internal server error. Please retry later.\nEx trace: {exception}")
             };
 
             context.Response.ContentType = "application/json";
