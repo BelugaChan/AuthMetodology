@@ -9,10 +9,8 @@ namespace AuthMetodology.Infrastructure.Services
         private readonly IDatabase cache;
         private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(5);
 
-        public RedisService(ConnectionMultiplexer connection)
-        {
-            cache = connection.GetDatabase();
-        }
+        public RedisService(IConnectionMultiplexer connection) => cache = connection.GetDatabase();
+
         public async Task<T> GetStringFromCacheAsync<T>(string key)
         {
             var result = await cache.StringGetAsync(key);
@@ -22,10 +20,7 @@ namespace AuthMetodology.Infrastructure.Services
             return JsonSerializer.Deserialize<T>(result);
         }
 
-        public async Task RemoveStringFromCacheAsync(string key)
-        {
-            await cache.KeyDeleteAsync(key);
-        }
+        public async Task RemoveStringFromCacheAsync(string key) => await cache.KeyDeleteAsync(key);
 
         public async Task SetStringToCacheAsync<T>(string key, T value)
         {
