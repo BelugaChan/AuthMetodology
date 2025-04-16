@@ -1,4 +1,5 @@
 ﻿using AuthMetodology.Infrastructure.Models;
+using AuthMetodology.Logic.Enums;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -36,7 +37,10 @@ namespace AuthMetodology.API.Extensions
                         }
                     };
                 });
-            services.AddAuthorization();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy => policy.RequireRole(nameof(UserRole.Admin)));
+            });
         }
     }
 }
