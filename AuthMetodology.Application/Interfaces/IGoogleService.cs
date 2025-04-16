@@ -8,8 +8,8 @@ namespace AuthMetodology.Application.Interfaces
     {
         Task<GoogleJsonWebSignature.Payload> VerifyGoogleTokenAsync(GoogleLoginUserRequestDtoV1 requestDto);
 
-        Task<AuthResponseDtoV1> CreateGoogleUserAsync(GoogleJsonWebSignature.Payload payload);
+        Task<AuthResponseDtoV1> CreateGoogleUserAsync(GoogleJsonWebSignature.Payload payload, CancellationToken cancellationToken = default);
 
-        Task<AuthResponseDtoV1> LoginGoogleUserAsync(GoogleJsonWebSignature.Payload payload);
+        Task<AuthResponseDtoV1> LoginGoogleUserAsync(GoogleJsonWebSignature.Payload payload, CancellationToken cancellationToken = default);
     }
 }

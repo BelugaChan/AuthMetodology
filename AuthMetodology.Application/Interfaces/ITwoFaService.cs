@@ -10,13 +10,13 @@ namespace AuthMetodology.Application.Interfaces
 {
     public interface ITwoFaService
     {
-        Task EnableTwoFaStatusAsync(Guid id);
-        Task DisableTwoFaStatusAsync(Guid id);
+        Task EnableTwoFaStatusAsync(Guid id, CancellationToken cancellationToken = default);
+        Task DisableTwoFaStatusAsync(Guid id, CancellationToken cancellationToken = default);
 
-        Task<AuthResponseDtoV1> VerifyTwoFaCodeAsync(TwoFaRequestDtoV1 requestDto);
+        Task<AuthResponseDtoV1> VerifyTwoFaCodeAsync(TwoFaRequestDtoV1 requestDto, CancellationToken cancellationToken = default);
 
         Task SendTwoFaAsync(SendTwoFaRequestDtoV1 requestDto);
 
-        Task SendTwoFaAsync(ReSendTwoFaRequestDtoV1 requestDto);
+        Task SendTwoFaAsync(ReSendTwoFaRequestDtoV1 requestDto, CancellationToken cancellationToken = default);
     }
 }
