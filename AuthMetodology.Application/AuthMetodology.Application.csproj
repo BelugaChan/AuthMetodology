@@ -18,4 +18,10 @@
     <ProjectReference Include="..\AuthMetodology.Persistence\AuthMetodology.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="RabbitMqPublisher">
+      <HintPath>..\..\RabbitMqLib\RabbitMqPublisher\bin\Debug\net8.0\RabbitMqPublisher.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
