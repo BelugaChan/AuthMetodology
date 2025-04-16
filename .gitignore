@@ -36,6 +36,8 @@ bld/
 *.VisualState.xml
 TestResult.xml
 
+rabbit-data/
+redis-data/
 # Build Results of an ATL Project
 [Dd]ebugPS/
 [Rr]eleasePS/
@@ -294,3 +296,8 @@ obj/
 bin/
 docker-compose/
 appsettings.json
+
+redis-data/
+rabbit-data/
+grafana-data/
+Configs/
