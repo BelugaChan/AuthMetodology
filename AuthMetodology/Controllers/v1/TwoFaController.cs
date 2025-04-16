@@ -1,7 +1,11 @@
 ﻿using Asp.Versioning;
 using AuthMetodology.Application.DTO.v1;
 using AuthMetodology.Application.Interfaces;
+using AuthMetodology.Infrastructure.Interfaces;
+using AuthMetodology.Infrastructure.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RabbitMqPublisher.Interface;
 
 namespace AuthMetodology.API.Controllers.v1
 {
@@ -10,12 +14,12 @@ namespace AuthMetodology.API.Controllers.v1
     [Route("api/v{version:apiVersion}/twofa")]
     public class TwoFaController : ControllerBase
     {
-        private readonly ILogger<TwoFaController> logger;
         private readonly ITwoFaService twoFaService;
-        public TwoFaController(ILogger<TwoFaController> logger, ITwoFaService twoFaService)
+        private readonly IRabbitMqPublisherBase<RabbitMqLogPublish> logQueueService;
+        public TwoFaController(ITwoFaService twoFaService, IRabbitMqPublisherBase<RabbitMqLogPublish> logQueueService)
         {
-            this.logger = logger;
             this.twoFaService = twoFaService;
+            this.logQueueService = logQueueService;
         }
 
         /// <summary>
@@ -35,12 +39,21 @@ namespace AuthMetodology.API.Controllers.v1
         /// <response code="409">Двухфакторка уже активирована.</response>
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         [MapToApiVersion(1)]
+        [Authorize]
         [HttpPatch("enable-2fa/{id}")]
-        public async Task<IActionResult> EnableTwoFa([FromRoute] Guid id)
+        public async Task<IActionResult> EnableTwoFa([FromRoute] Guid id, CancellationToken cancellationToken)
         {
-            logger.LogInformation("PATCH /api/v1/twofa/enable-2fa/id was called");
+            _ = logQueueService.SendEventAsync(
+                new RabbitMqLogPublish
+                {
+                    Message = "PATCH /api/v1/twofa/enable-2fa/id was called",
+                    LogLevel = Serilog.Events.LogEventLevel.Information,
+                    ServiceName = "AuthMetodology",
+                    TimeStamp = DateTime.UtcNow
+                }, cancellationToken
+            );
 
-            await twoFaService.EnableTwoFaStatusAsync(id);
+            await twoFaService.EnableTwoFaStatusAsync(id, cancellationToken);
             return Ok("2FA enabled");
         }
 
@@ -61,12 +74,21 @@ namespace AuthMetodology.API.Controllers.v1
         /// <response code="409">Двухфакторка уже деактивирована.</response>
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         [MapToApiVersion(1)]
+        [Authorize]
         [HttpPatch("disable-2fa/{id}")]
-        public async Task<IActionResult> DisableTwoFa([FromRoute] Guid id)
+        public async Task<IActionResult> DisableTwoFa([FromRoute] Guid id, CancellationToken cancellationToken)
         {
-            logger.LogInformation("PATCH /api/v1/twofa/disable-2fa/id was called");
+            _ = logQueueService.SendEventAsync(
+                new RabbitMqLogPublish
+                {
+                    Message = "PATCH /api/v1/twofa/disable-2fa/id was called",
+                    LogLevel = Serilog.Events.LogEventLevel.Information,
+                    ServiceName = "AuthMetodology",
+                    TimeStamp = DateTime.UtcNow
+                }, cancellationToken
+            );
 
-            await twoFaService.DisableTwoFaStatusAsync(id);  
+            await twoFaService.DisableTwoFaStatusAsync(id, cancellationToken);  
             return Ok("2FA disabled");
         }
 
@@ -104,11 +126,19 @@ namespace AuthMetodology.API.Controllers.v1
         /// <response code="500">Прочие ошибки на стороне сервера</response>
         [MapToApiVersion(1)]
         [HttpPost("verify-2fa")]
-        public async Task<IActionResult> VerifyTwoFa([FromBody] TwoFaRequestDtoV1 requestDto)
+        public async Task<IActionResult> VerifyTwoFa([FromBody] TwoFaRequestDtoV1 requestDto, CancellationToken cancellationToken)
         {
-            logger.LogInformation("POST /api/v1/twofa/verify-2fa was called");
+            _ = logQueueService.SendEventAsync(
+               new RabbitMqLogPublish
+               {
+                   Message = "POST /api/v1/twofa/verify-2fa was called",
+                   LogLevel = Serilog.Events.LogEventLevel.Information,
+                   ServiceName = "AuthMetodology",
+                   TimeStamp = DateTime.UtcNow
+               }, cancellationToken
+            );
 
-            var authDto = await twoFaService.VerifyTwoFaCodeAsync(requestDto);
+            var authDto = await twoFaService.VerifyTwoFaCodeAsync(requestDto, cancellationToken);
             return Ok(authDto);
         }
 
@@ -136,15 +166,19 @@ namespace AuthMetodology.API.Controllers.v1
         /// <response code="500">Прочие ошибки на стороне сервера</response>
         [MapToApiVersion(1)]
         [HttpPost("resend-2fa")]
-        public async Task<IActionResult> ResendTwoFa([FromBody] ReSendTwoFaRequestDtoV1 requestDto)
+        public async Task<IActionResult> ResendTwoFa([FromBody] ReSendTwoFaRequestDtoV1 requestDto, CancellationToken cancellationToken)
         {
-            //var userEntity = await userRepository.GetByIdAsync(id);
-            //var user = mapper.Map<UserV1>(userEntity);
-            //if (user.Is2FaEnabled is false)
-            //    return BadRequest("2FA не активирована");
-            logger.LogInformation("POST /api/v1/twofa/resend-2fa was called");
+            _ = logQueueService.SendEventAsync(
+               new RabbitMqLogPublish
+               {
+                   Message = "POST /api/v1/twofa/resend-2fa was called",
+                   LogLevel = Serilog.Events.LogEventLevel.Information,
+                   ServiceName = "AuthMetodology",
+                   TimeStamp = DateTime.UtcNow
+               }, cancellationToken
+            );
 
-            await twoFaService.SendTwoFaAsync(requestDto);
+            await twoFaService.SendTwoFaAsync(requestDto, cancellationToken);
             return Ok("Код отправлен повторно");
         }
     }
