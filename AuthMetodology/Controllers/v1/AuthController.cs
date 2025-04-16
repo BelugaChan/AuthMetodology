@@ -9,6 +9,7 @@ using System.Text;
 using Asp.Versioning;
 using AuthMetodology.Application.DTO.v1;
 using AuthMetodology.Application.Interfaces;
+using RabbitMqPublisher.Interface;
 
 namespace AuthMetodology.API.Controllers.v1
 {
@@ -17,19 +18,21 @@ namespace AuthMetodology.API.Controllers.v1
     [Route("api/v{version:apiVersion}/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly ILogger<AuthController> logger;
         private readonly IUserService userService;
         private readonly IGoogleService googleService;
         private readonly ICookieCreator cookieCreator;
+        private readonly IRabbitMqPublisherBase<RabbitMqLogPublish> logQueueService;
+        private readonly IResetPasswordService resetPasswordService;
         private readonly JWTOptions options;
 
-        public AuthController(ILogger<AuthController> logger, IUserService userService, IGoogleService googleService,ICookieCreator cookieCreator, IOptions<JWTOptions> options) 
+        public AuthController(IUserService userService, IGoogleService googleService,ICookieCreator cookieCreator, IRabbitMqPublisherBase<RabbitMqLogPublish> logQueueService,IOptions<JWTOptions> options, IResetPasswordService resetPasswordService) 
         {
-            this.logger = logger;
             this.googleService = googleService;
             this.userService = userService;
             this.cookieCreator = cookieCreator;
+            this.logQueueService = logQueueService;
             this.options = options.Value;
+            this.resetPasswordService = resetPasswordService;
         }
 
         /// <summary>
@@ -70,17 +73,34 @@ namespace AuthMetodology.API.Controllers.v1
         /// <response code="500">Прочие ошибки на стороне сервера</response>
         [MapToApiVersion(1)]
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterUserRequestDtoV1 userDto)
+        public async Task<IActionResult> Register([FromBody] RegisterUserRequestDtoV1 userDto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
-                logger.LogError("ModelState is invalid in POST /api/v1/auth/register \n{ModelState}",ModelState);
+                await logQueueService.SendEventAsync(
+                    new RabbitMqLogPublish 
+                    {
+                        Message = $"ModelState is invalid in POST /api/v1/auth/register \n{ModelState}",
+                        LogLevel = Serilog.Events.LogEventLevel.Error,
+                        ServiceName = "AuthMetodology",
+                        TimeStamp = DateTime.UtcNow
+                    }, cancellationToken
+
+                );
                 return BadRequest(ModelState);
             }
 
-            logger.LogInformation("POST /api/v1/auth/register was called");
+            _ = logQueueService.SendEventAsync(//запуск логирования параллельно (не дожидаясь завершения)
+                    new RabbitMqLogPublish
+                    {
+                        Message = "POST /api/v1/auth/register was called",
+                        LogLevel = Serilog.Events.LogEventLevel.Information,
+                        ServiceName = "AuthMetodology",
+                        TimeStamp = DateTime.UtcNow
+                    }, cancellationToken
+                );
 
-            var authResponse = await userService.RegisterUserAsync(userDto);
+            var authResponse = await userService.RegisterUserAsync(userDto, cancellationToken);
 
             cookieCreator.CreateTokenCookie("access", authResponse.AccessToken, DateTime.UtcNow.AddMinutes(options.AccessTokenExpiryMinutes));
             cookieCreator.CreateTokenCookie("refresh", authResponse.RefreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays));
@@ -123,17 +143,33 @@ namespace AuthMetodology.API.Controllers.v1
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         [MapToApiVersion(1)]
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginUserRequestDtoV1 userDto)
+        public async Task<IActionResult> Login([FromBody] LoginUserRequestDtoV1 userDto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
-                logger.LogError("ModelState is invalid in POST /api/v1/auth/login \n{ModelState}",ModelState);
+                await logQueueService.SendEventAsync(
+                    new RabbitMqLogPublish
+                    {
+                        Message = $"ModelState is invalid in POST /api/v1/auth/login \n{ModelState}",
+                        LogLevel = Serilog.Events.LogEventLevel.Error,
+                        ServiceName = "AuthMetodology",
+                        TimeStamp = DateTime.UtcNow
+                    }, cancellationToken
+                );
                 return BadRequest(ModelState);
             }
 
-            logger.LogInformation("POST /api/v1/auth/login was called");
+            _ = logQueueService.SendEventAsync(
+                    new RabbitMqLogPublish
+                    {
+                        Message = "POST /api/v1/auth/login was called",
+                        LogLevel = Serilog.Events.LogEventLevel.Information,
+                        ServiceName = "AuthMetodology",
+                        TimeStamp = DateTime.UtcNow
+                    }, cancellationToken
+            );
 
-            var authResponse = await userService.LoginAsync(userDto);
+            var authResponse = await userService.LoginAsync(userDto, cancellationToken);
             if(!string.IsNullOrEmpty(authResponse.AccessToken))
                 cookieCreator.CreateTokenCookie("access", authResponse.AccessToken, DateTime.UtcNow.AddMinutes(options.AccessTokenExpiryMinutes));
             if(!string.IsNullOrEmpty(authResponse.RefreshToken))
@@ -175,14 +211,22 @@ namespace AuthMetodology.API.Controllers.v1
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         [MapToApiVersion(1)]
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDtoV1 requestDto)
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDtoV1 requestDto, CancellationToken cancellationToken)
         {
-            logger.LogInformation("POST /api/v1/auth/refresh was called");
+            _ = logQueueService.SendEventAsync(
+                new RabbitMqLogPublish 
+                    { 
+                        Message = "POST /api/v1/auth/refresh was called", 
+                        LogLevel = Serilog.Events.LogEventLevel.Information, 
+                        ServiceName = "AuthMetodology", 
+                        TimeStamp = DateTime.UtcNow 
+                    }, cancellationToken
+                );
 
             var principal = GetPrincipalFromExpiredToken(requestDto.AccessToken);
             var userId = Guid.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            var refreshTokenResponseDto = await userService.UpdateUserTokensAsync(userId, requestDto);
+            var refreshTokenResponseDto = await userService.UpdateUserTokensAsync(userId, requestDto, cancellationToken);
 
             cookieCreator.CreateTokenCookie("access", refreshTokenResponseDto.AccessToken, DateTime.UtcNow.AddMinutes(options.AccessTokenExpiryMinutes));
             cookieCreator.CreateTokenCookie("refresh", refreshTokenResponseDto.RefreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays));
@@ -224,13 +268,121 @@ namespace AuthMetodology.API.Controllers.v1
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         [MapToApiVersion(1)]
         [HttpPost("googleRegister")]
-        public async Task<IActionResult> GoogleRegister(GoogleLoginUserRequestDtoV1 requestDto)
+        public async Task<IActionResult> GoogleRegister(GoogleLoginUserRequestDtoV1 requestDto, CancellationToken cancellationToken)
         {
-            logger.LogInformation("POST /api/v1/auth/googleRegister was called");
+            _ = logQueueService.SendEventAsync(
+                new RabbitMqLogPublish
+                {
+                    Message = "POST /api/v1/auth/googleRegister was called",
+                    LogLevel = Serilog.Events.LogEventLevel.Information,
+                    ServiceName = "AuthMetodology",
+                    TimeStamp = DateTime.UtcNow
+                }, cancellationToken
+            );
 
             var payload = await googleService.VerifyGoogleTokenAsync(requestDto);
             var response = await googleService.CreateGoogleUserAsync(payload);
             return Ok(response);
+        }
+
+        /// <summary>
+        /// Изменение пароля пользователя.
+        /// </summary>
+        /// <remarks>
+        /// ### Пример запроса:
+        /// POST /api/v1/auth/reset-password
+        /// ```json
+        /// {
+        ///     "token": "qwjnckjndslksjdnpqwkmpoqkmd",
+        ///     "password": "SecurePassword123!",
+        ///     "confirmPassword": "SecurePassword123!"
+        /// }
+        /// ```
+        /// 
+        /// ### Требования:
+        /// - Пароль: 8–20 символов, минимум 1 цифра, 1 спецсимвол, буквы в верхнем и нижнем регистре. Отсутствие кирилицы.
+        /// - Пароль и подтверждение должны совпадать.
+        /// 
+        /// ### Возвращает:
+        /// - Уведомление о том, что пароль был успешно изменён
+        /// ```
+        /// </remarks>
+        /// <param name="requestDto">Данные для логина.</param>
+        /// <response code="200">Успешное изменение пароля. Возвращает следующее сообщение: "Пароль успешно изменён! Вы будете перемещены на форму логина"</response>
+        /// <response code="409">Время жизни токена для смены пароля истекло, либо же токен некорректен</response>
+        /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
+        [MapToApiVersion(1)]
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDtoV1 requestDto, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+            {
+                await logQueueService.SendEventAsync(
+                    new RabbitMqLogPublish
+                    {
+                        Message = $"ModelState is invalid in POST /api/v1/auth/reset \n{ModelState}",
+                        LogLevel = Serilog.Events.LogEventLevel.Error,
+                        ServiceName = "AuthMetodology",
+                        TimeStamp = DateTime.UtcNow
+                    }, cancellationToken
+                );
+                return BadRequest(ModelState);
+            }
+
+            _ = logQueueService.SendEventAsync(
+                    new RabbitMqLogPublish
+                    {
+                        Message = "POST /api/v1/auth/reset was called",
+                        LogLevel = Serilog.Events.LogEventLevel.Information,
+                        ServiceName = "AuthMetodology",
+                        TimeStamp = DateTime.UtcNow
+                    }, cancellationToken
+            );
+
+            await resetPasswordService.ResetPasswordAsync(requestDto, cancellationToken);
+
+            return Ok("Пароль успешно изменён! Вы будете перемещены на форму логина");
+        }
+
+        /// <summary>
+        /// Запрос на замену пароля пользователя.
+        /// </summary>
+        /// <remarks>
+        /// ### Пример запроса:
+        /// POST /api/v1/auth/reset-password
+        /// ```json
+        /// {
+        ///     "email": "user@example.com"
+        /// }
+        /// ```
+        /// 
+        /// ### Требования:
+        /// - Email: 5–30 символов, валидный формат.
+        /// 
+        /// ### Возвращает:
+        /// - Уведомление о том, что письмо с ссылкой для замены пароля было отправлено на почту, вне зависимости от того, был ли найден пользователь в системе или не был.
+        /// ```
+        /// </remarks>
+        /// <param name="requestDto">Данные для отправки письма.</param>
+        /// <response code="200">Отправка письма. Внимание! ответ 200 ОК будет даже в случае отсутствия пользователя в системе. Возвращает следующее сообщение: "Если почта существует, письмо с сылкой для изменения пароля было отправлено"</response>
+        /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
+        [MapToApiVersion(1)]
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDtoV1 requestDto, CancellationToken cancellationToken)
+        {
+            _ = logQueueService.SendEventAsync(
+                    new RabbitMqLogPublish
+                    {
+                        Message = "POST /api/v1/auth/forgot was called",
+                        LogLevel = Serilog.Events.LogEventLevel.Information,
+                        ServiceName = "AuthMetodology",
+                        TimeStamp = DateTime.UtcNow
+                    }, cancellationToken
+            );
+
+            await resetPasswordService.ForgotPasswordAsync(requestDto, Request.Scheme, Request.Host.ToString(), cancellationToken);
+
+            return Ok("Если почта существует, письмо с сылкой для изменения пароля было отправлено");
         }
 
         /// <summary>
@@ -266,12 +418,20 @@ namespace AuthMetodology.API.Controllers.v1
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         [MapToApiVersion(1)]
         [HttpPost("googleLogin")]
-        public async Task<IActionResult> GoogleLogin(GoogleLoginUserRequestDtoV1 requestDto)
+        public async Task<IActionResult> GoogleLogin(GoogleLoginUserRequestDtoV1 requestDto, CancellationToken cancellationToken)
         {
-            logger.LogInformation("POST /api/v1/auth/googleLogin was called");
+            _ = logQueueService.SendEventAsync(
+                new RabbitMqLogPublish
+                {
+                    Message = "POST /api/v1/auth/googleLogin was called",
+                    LogLevel = Serilog.Events.LogEventLevel.Information,
+                    ServiceName = "AuthMetodology",
+                    TimeStamp = DateTime.UtcNow
+                }, cancellationToken
+            );
 
             var payload = await googleService.VerifyGoogleTokenAsync(requestDto);
-            var response = await googleService.LoginGoogleUserAsync(payload);
+            var response = await googleService.LoginGoogleUserAsync(payload, cancellationToken);
             return Ok(response);
         }
 
