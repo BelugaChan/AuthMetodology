@@ -41,17 +41,17 @@ namespace AuthMetodology.Application.Services
         }
 
 
-        public async Task<AuthResponseDtoV1> CreateGoogleUserAsync(GoogleJsonWebSignature.Payload payload)
+        public async Task<AuthResponseDtoV1> CreateGoogleUserAsync(GoogleJsonWebSignature.Payload payload, CancellationToken cancellationToken = default)
         {
-            var existingUserEntity = await userRepository.GetByEmailAsync(payload.Email);
+            var existingUserEntity = await userRepository.GetByEmailAsync(payload.Email, cancellationToken);
             
             if(existingUserEntity is null)
             {
                 var refreshToken = jWtProvider.GenerateRefreshToken();
-                var newUser = UserV1.Create(Guid.NewGuid(), string.Empty, payload.Email, refreshToken, DateTime.UtcNow.AddDays(optionsJwt.RefreshTokenExpiryDays), payload.Subject, false);
+                var newUser = UserV1.Create(Guid.NewGuid(), string.Empty, payload.Email, refreshToken, DateTime.UtcNow.AddDays(optionsJwt.RefreshTokenExpiryDays), payload.Subject, false, string.Empty, default);
                 var token = jWtProvider.GenerateToken(newUser);
 
-                await userRepository.AddAsync(mapper.Map<UserEntityV1>(newUser));
+                await userRepository.AddAsync(mapper.Map<UserEntityV1>(newUser), cancellationToken);
 
                 return new AuthResponseDtoV1 { UserId=newUser.Id, AccessToken = token, RefreshToken = token, RequiresTwoFa = false};
             }
@@ -59,9 +59,9 @@ namespace AuthMetodology.Application.Services
 
         }
 
-        public async Task<AuthResponseDtoV1> LoginGoogleUserAsync(GoogleJsonWebSignature.Payload payload)
+        public async Task<AuthResponseDtoV1> LoginGoogleUserAsync(GoogleJsonWebSignature.Payload payload, CancellationToken cancellationToken = default)
         {
-            var existingUserEntity = await userRepository.GetByEmailAsync(payload.Email);
+            var existingUserEntity = await userRepository.GetByEmailAsync(payload.Email, cancellationToken);
             
             if(existingUserEntity is not null)
             {
@@ -76,7 +76,8 @@ namespace AuthMetodology.Application.Services
                     {
                         u.RefreshToken = refreshToken;
                         u.RefreshTokenExpiry = DateTime.UtcNow.AddDays(optionsJwt.RefreshTokenExpiryDays);
-                    });
+                    }, 
+                    cancellationToken);
                     if (isOk)
                     {
                         var token = jWtProvider.GenerateToken(existingUser);

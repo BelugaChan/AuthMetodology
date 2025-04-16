@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using AuthMetodology.Logic.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,6 +35,14 @@ namespace AuthMetodology.API.Controllers.v1
         {
             var data = new {Name = "Test", Surname = "Testovich" };
             return Ok(data);
+        }
+
+        [Authorize(Roles = nameof(UserRole.Admin))]
+        [MapToApiVersion(1)]
+        [HttpGet("admin-data")]
+        public IActionResult GetAdminData()
+        {
+            return Ok("Secret data for admins!");
         }
     }
 }

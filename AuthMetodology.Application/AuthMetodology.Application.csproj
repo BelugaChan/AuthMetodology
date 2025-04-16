@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿ <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -16,6 +16,12 @@
     <ProjectReference Include="..\AuthMetodology.Infrastructure\AuthMetodology.Infrastructure.csproj" />
     <ProjectReference Include="..\AuthMetodology.Logic\AuthMetodology.Logic.csproj" />
     <ProjectReference Include="..\AuthMetodology.Persistence\AuthMetodology.Persistence.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RabbitMqPublisher">
+      <HintPath>..\..\RabbitMqLib\RabbitMqPublisher\bin\Debug\net8.0\RabbitMqPublisher.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using AuthMetodology.Application.DTO.v1;
 using AuthMetodology.Infrastructure.Models;
 using Microsoft.Extensions.Options;
+using RabbitMqPublisher.Interface;
 
 namespace AuthMetodology.Application.Services
 {
@@ -16,25 +17,24 @@ namespace AuthMetodology.Application.Services
         private readonly IUserRepository userRepository;
         private readonly IMapper mapper;
         private readonly ITwoFaProvider twoFaProvider;
-        private readonly IRabbitMqService rabbitMqService;
+        private readonly IRabbitMqPublisherBase<RabbitMqTwoFaPublish> twoFaQueueService;
         private readonly IRedisService redisService;
         private readonly IJWTProvider jWtProvider;
         private readonly JWTOptions options;
-        private readonly string TwoFaQueueName = "TwoFaQueue";
-        public TwoFaService(IUserRepository userRepository,IMapper mapper, ITwoFaProvider twoFaProvider,IRabbitMqService rabbitMqService, IRedisService redisService, IJWTProvider jWtProvider, IOptions<JWTOptions> options)
+        public TwoFaService(IUserRepository userRepository,IMapper mapper, ITwoFaProvider twoFaProvider, IRabbitMqPublisherBase<RabbitMqTwoFaPublish> twoFaQueueService, IRedisService redisService, IJWTProvider jWtProvider, IOptions<JWTOptions> options)
         {
             this.userRepository = userRepository;
             this.mapper = mapper;
             this.redisService = redisService;
             this.twoFaProvider = twoFaProvider;
-            this.rabbitMqService = rabbitMqService;
+            this.twoFaQueueService = twoFaQueueService;
             this.jWtProvider = jWtProvider;
             this.options = options.Value;
         }
 
-        public async Task EnableTwoFaStatusAsync(Guid id)
+        public async Task EnableTwoFaStatusAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var userEntity = await userRepository.GetByIdAsync(id);
+            var userEntity = await userRepository.GetByIdAsync(id, cancellationToken);
             
             if (userEntity is not null) 
             {
@@ -46,7 +46,7 @@ namespace AuthMetodology.Application.Services
                 var isOk = await userRepository.UpdateUserAsync(id, u =>
                 {
                     u.Is2FaEnabled = true;
-                });
+                }, cancellationToken);
                 if (!isOk)
                     throw new DbUpdateException();
             }
@@ -56,9 +56,9 @@ namespace AuthMetodology.Application.Services
             }
         }
 
-        public async Task DisableTwoFaStatusAsync(Guid id)
+        public async Task DisableTwoFaStatusAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var userEntity = await userRepository.GetByIdAsync(id);
+            var userEntity = await userRepository.GetByIdAsync(id, cancellationToken);
             
             if (userEntity is not null)
             {
@@ -69,7 +69,7 @@ namespace AuthMetodology.Application.Services
                 var isOk = await userRepository.UpdateUserAsync(id, u =>
                 {
                     u.Is2FaEnabled = false;
-                });
+                }, cancellationToken);
                 if (!isOk)
                     throw new DbUpdateException();
             }
@@ -93,16 +93,16 @@ namespace AuthMetodology.Application.Services
             //rabbitMqService.SendMessage(publishDtoForRabbit);
         }
 
-        public async Task SendTwoFaAsync(ReSendTwoFaRequestDtoV1 requestDto)
+        public async Task SendTwoFaAsync(ReSendTwoFaRequestDtoV1 requestDto, CancellationToken cancellationToken = default)
         {
-            var userEntity = await userRepository.GetByEmailAsync(requestDto.Email);
+            var userEntity = await userRepository.GetByEmailAsync(requestDto.Email, cancellationToken);
             if (userEntity is null)
                 throw new UserNotFoundException();
             var code = twoFaProvider.GenerateTwoFaCode();
             string key = $"twoFa:{userEntity.Id}";
             await redisService.RemoveStringFromCacheAsync(key);
 
-            await SendAndSaveData(key, userEntity.Id, code, requestDto.Email);
+            await SendAndSaveData(key, userEntity.Id, code, requestDto.Email, cancellationToken);
             //var publishDtoForRabbit = RabbitMqTwoFaPublish.Create(userEntity.Id, code, requestDto.Email);
             //var twoFaModelForRedis = RedisTwoFa.Create(userEntity.Id, code, DateTime.UtcNow.AddMinutes(5));
 
@@ -111,17 +111,17 @@ namespace AuthMetodology.Application.Services
             //rabbitMqService.SendMessage(publishDtoForRabbit);
         }
         
-        private async Task SendAndSaveData(string key, Guid id, string code, string mail)
+        private async Task SendAndSaveData(string key, Guid id, string code, string mail, CancellationToken cancellationToken = default)
         {
             var publishDtoForRabbit = RabbitMqTwoFaPublish.Create(id, code, mail);
             var twoFaModelForRedis = RedisTwoFa.Create(id, code, DateTime.UtcNow.AddMinutes(5));
 
             await redisService.SetStringToCacheAsync(key, twoFaModelForRedis);
 
-            await rabbitMqService.SendMessageAsync(publishDtoForRabbit, TwoFaQueueName);
+            _ = twoFaQueueService.SendEventAsync(publishDtoForRabbit, cancellationToken);
         }
 
-        public async Task<AuthResponseDtoV1> VerifyTwoFaCodeAsync(TwoFaRequestDtoV1 requestDto)
+        public async Task<AuthResponseDtoV1> VerifyTwoFaCodeAsync(TwoFaRequestDtoV1 requestDto, CancellationToken cancellationToken = default)
         {
             var key = $"twoFa:{requestDto.Id}";
             var redisData = await redisService.GetStringFromCacheAsync<RedisTwoFa>(key);
@@ -132,7 +132,7 @@ namespace AuthMetodology.Application.Services
 
             await redisService.RemoveStringFromCacheAsync(key);
 
-            var userEntity = await userRepository.GetByIdAsync(requestDto.Id);
+            var userEntity = await userRepository.GetByIdAsync(requestDto.Id, cancellationToken);
             if (userEntity is not null)
             {
                 var user = mapper.Map<UserV1>(userEntity);
@@ -143,7 +143,7 @@ namespace AuthMetodology.Application.Services
                 {
                     u.RefreshToken = refreshToken;
                     u.RefreshTokenExpiry = DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays);
-                });
+                }, cancellationToken);
                 if (isOk)
                 {
                     var token = jWtProvider.GenerateToken(user);

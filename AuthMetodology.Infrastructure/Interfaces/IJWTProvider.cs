@@ -1,10 +1,4 @@
-﻿using AuthMetodology.Infrastructure.Models;
-using AuthMetodology.Logic.Models.v1;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AuthMetodology.Logic.Models.v1;
 
 namespace AuthMetodology.Infrastructure.Interfaces
 {
@@ -13,5 +7,7 @@ namespace AuthMetodology.Infrastructure.Interfaces
         string GenerateToken(UserV1 user);
 
         string GenerateRefreshToken();
+
+        string GenerateResetToken();
     }
 }

@@ -9,7 +9,9 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.14" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.2" />
     <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.31" />
   </ItemGroup>
 
@@ -21,6 +23,15 @@
     <Folder Include="grafana-data\" />
     <Folder Include="redis-data\" />
     <Folder Include="rabbit-data\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RabbitMqModel">
+      <HintPath>..\..\RabbitMqLib\RabbitMqModel\bin\Debug\net8.0\RabbitMqModel.dll</HintPath>
+    </Reference>
+    <Reference Include="RabbitMqPublisher">
+      <HintPath>..\..\RabbitMqLib\RabbitMqPublisher\bin\Debug\net8.0\RabbitMqPublisher.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

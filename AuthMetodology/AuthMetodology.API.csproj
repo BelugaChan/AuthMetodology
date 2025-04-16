@@ -24,6 +24,10 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.11.2" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.11.2-beta.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.1" />
     <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
@@ -34,6 +38,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AuthMetodology.Application\AuthMetodology.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RabbitMqModel">
+      <HintPath>..\..\RabbitMqLib\RabbitMqModel\bin\Debug\net8.0\RabbitMqModel.dll</HintPath>
+    </Reference>
+    <Reference Include="RabbitMqPublisher">
+      <HintPath>..\..\RabbitMqLib\RabbitMqPublisher\bin\Debug\net8.0\RabbitMqPublisher.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
