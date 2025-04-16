@@ -4,7 +4,7 @@
         <name>AuthMetodology.API</name>
     </assembly>
     <members>
-        <member name="M:AuthMetodology.API.Controllers.v1.AuthController.Register(AuthMetodology.Application.DTO.v1.RegisterUserRequestDtoV1)">
+        <member name="M:AuthMetodology.API.Controllers.v1.AuthController.Register(AuthMetodology.Application.DTO.v1.RegisterUserRequestDtoV1,System.Threading.CancellationToken)">
             <summary>
             Регистрирует нового пользователя в системе.
             </summary>
@@ -42,7 +42,7 @@
             <response code="409">Пользователь с таким email уже существует.</response>
             <response code="500">Прочие ошибки на стороне сервера</response>
         </member>
-        <member name="M:AuthMetodology.API.Controllers.v1.AuthController.Login(AuthMetodology.Application.DTO.v1.LoginUserRequestDtoV1)">
+        <member name="M:AuthMetodology.API.Controllers.v1.AuthController.Login(AuthMetodology.Application.DTO.v1.LoginUserRequestDtoV1,System.Threading.CancellationToken)">
             <summary>
             Аутентификация существующего пользователя в системе.
             </summary>
@@ -77,7 +77,7 @@
             <response code="401">Некорректный пароль </response>
             <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         </member>
-        <member name="M:AuthMetodology.API.Controllers.v1.AuthController.Refresh(AuthMetodology.Application.DTO.v1.RefreshTokenRequestDtoV1)">
+        <member name="M:AuthMetodology.API.Controllers.v1.AuthController.Refresh(AuthMetodology.Application.DTO.v1.RefreshTokenRequestDtoV1,System.Threading.CancellationToken)">
             <summary>
             Обновление пары access - refresh токенов.
             </summary>
@@ -110,7 +110,7 @@
             <response code="401">Пользователь не найден в бд, либо refreshToken некорректен или у него закончилось время жизни.</response>
             <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         </member>
-        <member name="M:AuthMetodology.API.Controllers.v1.AuthController.GoogleRegister(AuthMetodology.Application.DTO.v1.GoogleLoginUserRequestDtoV1)">
+        <member name="M:AuthMetodology.API.Controllers.v1.AuthController.GoogleRegister(AuthMetodology.Application.DTO.v1.GoogleLoginUserRequestDtoV1,System.Threading.CancellationToken)">
             <summary>
             Регистрация пользователя в системе с помощью платформы Google.
             </summary>
@@ -143,7 +143,7 @@
             <response code="409">Пользователь с таким email уже существует.</response>
             <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         </member>
-        <member name="M:AuthMetodology.API.Controllers.v1.AuthController.GoogleLogin(AuthMetodology.Application.DTO.v1.GoogleLoginUserRequestDtoV1)">
+        <member name="M:AuthMetodology.API.Controllers.v1.AuthController.GoogleLogin(AuthMetodology.Application.DTO.v1.GoogleLoginUserRequestDtoV1,System.Threading.CancellationToken)">
             <summary>
             Логин пользователя в системе с помощью платформы Google.
             </summary>
@@ -196,7 +196,7 @@
             <response code="401">Пользователь не прошёл аутентификацию</response>
             <response code="500">Прочие ошибки на стороне сервера</response>
         </member>
-        <member name="M:AuthMetodology.API.Controllers.v1.TwoFaController.EnableTwoFa(System.Guid)">
+        <member name="M:AuthMetodology.API.Controllers.v1.TwoFaController.EnableTwoFa(System.Guid,System.Threading.CancellationToken)">
             <summary>
             Активация двухфакторной аутентификации пользователя.
             </summary>
@@ -214,7 +214,7 @@
             <response code="409">Двухфакторка уже активирована.</response>
             <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         </member>
-        <member name="M:AuthMetodology.API.Controllers.v1.TwoFaController.DisableTwoFa(System.Guid)">
+        <member name="M:AuthMetodology.API.Controllers.v1.TwoFaController.DisableTwoFa(System.Guid,System.Threading.CancellationToken)">
             <summary>
             Деактивация двухфакторной аутентификации пользователя.
             </summary>
@@ -232,7 +232,7 @@
             <response code="409">Двухфакторка уже деактивирована.</response>
             <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         </member>
-        <member name="M:AuthMetodology.API.Controllers.v1.TwoFaController.VerifyTwoFa(AuthMetodology.Application.DTO.v1.TwoFaRequestDtoV1)">
+        <member name="M:AuthMetodology.API.Controllers.v1.TwoFaController.VerifyTwoFa(AuthMetodology.Application.DTO.v1.TwoFaRequestDtoV1,System.Threading.CancellationToken)">
             <summary>
             Проверяет код двухфакторной аутентификации.
             </summary>
@@ -266,7 +266,7 @@
             <response code="401">Пользователь с таким id не найден в системе</response>
             <response code="500">Прочие ошибки на стороне сервера</response>
         </member>
-        <member name="M:AuthMetodology.API.Controllers.v1.TwoFaController.ResendTwoFa(AuthMetodology.Application.DTO.v1.ReSendTwoFaRequestDtoV1)">
+        <member name="M:AuthMetodology.API.Controllers.v1.TwoFaController.ResendTwoFa(AuthMetodology.Application.DTO.v1.ReSendTwoFaRequestDtoV1,System.Threading.CancellationToken)">
             <summary>
             Повторная отправка кода двухфакторной аутентификации.
             </summary>
