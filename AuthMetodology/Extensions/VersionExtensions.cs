@@ -9,7 +9,7 @@ namespace AuthMetodology.API.Extensions
             services.AddApiVersioning(options =>
             {
                 //Версия API по умолчанию
-                options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1);
+                options.DefaultApiVersion = new ApiVersion(1);
 
                 //Cпециальные HTTP-заголовки, в которых перечислены актуальные и устаревшие версии API
                 options.ReportApiVersions = true;
