@@ -13,13 +13,17 @@ namespace AuthMetodology.Infrastructure.Providers
     public class JWTProvider : IJWTProvider
     {
         private readonly JWTOptions options;
-        public JWTProvider(IOptions<JWTOptions> options)
-        {
-            this.options = options.Value;
-        }
+        public JWTProvider(IOptions<JWTOptions> options) => this.options = options.Value;
+
         public string GenerateToken(UserV1 user)
         {
-            Claim[] claims = [new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())];
+            var tokenExpiration = DateTime.UtcNow.AddMinutes(options.AccessTokenExpiryMinutes);
+            Claim[] claims = 
+                [
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Role, user.UserRole.ToString()),
+                    new Claim(ClaimTypes.Expiration, tokenExpiration.ToString())
+                ];
 
             var signingCredential = new SigningCredentials( //алгоритм кодирования
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.SecretKey)),
@@ -28,7 +32,7 @@ namespace AuthMetodology.Infrastructure.Providers
             var token = new JwtSecurityToken(
                 claims: claims,
                 signingCredentials: signingCredential,
-                expires: DateTime.UtcNow.AddMinutes(options.AccessTokenExpiryMinutes)
+                expires: tokenExpiration
                 );
 
             var tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
@@ -37,6 +41,16 @@ namespace AuthMetodology.Infrastructure.Providers
         }
 
         public string GenerateRefreshToken()
+        {
+            return GenerateToken();
+        }
+
+        public string GenerateResetToken()
+        {
+            return GenerateToken();
+        }
+
+        private string GenerateToken()
         {
             var randomBytes = RandomNumberGenerator.GetBytes(64);
             return Convert.ToBase64String(randomBytes);
