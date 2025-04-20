@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AuthMetodology.Application.DTO.v1
 {
-    public class SendTwoFaRequestDtoV1
+    public class SendVerificationCodeRequestDtoV1
     {
         public required Guid Id { get; set; }
         public required string Mail { get; set; }
