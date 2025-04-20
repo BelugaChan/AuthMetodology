@@ -15,6 +15,11 @@ jobs:
               uses: actions/setup-dotnet@v3
               with: 
                 dotnet-version: '8.0.x'
+            
+            - name: Generate appsettings.json
+              run: |
+                (Get-Content ./appsettings.Template.json) -replace '#{POSTGRES_CONNECTION_STRING}#', '${{ secrets.POSTGRES_CONNECTION_STRING }}' -replace '#{GOOGLE_CLIENT_ID}#', '${{ secrets.GOOGLE_CLIENT_ID }} -replace '#{JWT_SECRET_KEY}#', '${{ secrets.JWT_SECRET_KEY }}' | Set-Content ./appsettings.json
+              shell: pwsh
 
             - name: Restore dependencies
               run: dotnet restore --verbosity quiet
@@ -27,7 +32,7 @@ jobs:
 
             - name: Upload test results
               if: always()
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with: 
                 name: test-results
                 path: '**/*.trx'
