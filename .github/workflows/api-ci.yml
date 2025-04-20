@@ -25,7 +25,7 @@ jobs:
               run: dotnet restore --verbosity quiet
 
             - name: Build without warnings
-              run: dotnet build --configuration Release --no-warnings --no-restore
+              run: dotnet build --configuration Release --no-restore
 
             - name: Run tests
               run: dotnet test --verbosity normal
