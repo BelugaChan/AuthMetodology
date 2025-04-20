@@ -18,14 +18,14 @@ jobs:
             
             - name: Generate appsettings.json
               run: |
-                (Get-Content ./AuthMetodology/appsettings.Template.json) -replace '#{POSTGRES_CONNECTION_STRING}#', '${{ secrets.POSTGRES_CONNECTION_STRING }}' -replace '#{GOOGLE_CLIENT_ID}#', '${{ secrets.GOOGLE_CLIENT_ID }} -replace '#{JWT_SECRET_KEY}#', '${{ secrets.JWT_SECRET_KEY }}' | Set-Content ./AuthMetodology/appsettings.json
+                (Get-Content ./AuthMetodology/appsettings.Template.json) -replace '#{POSTGRES_CONNECTION_STRING}#', '${{ secrets.POSTGRES_CONNECTION_STRING }}' -replace '#{GOOGLE_CLIENT_ID}#', '${{ secrets.GOOGLE_CLIENT_ID }}' -replace '#{JWT_SECRET_KEY}#', '${{ secrets.JWT_SECRET_KEY }}' | Set-Content ./AuthMetodology/appsettings.json
               shell: pwsh
 
             - name: Restore dependencies
               run: dotnet restore --verbosity quiet
 
             - name: Build without warnings
-              run: dotnet build -- configuration Release --no-warnings  --no-restore
+              run: dotnet build --configuration Release --no-warnings --no-restore
 
             - name: Run tests
               run: dotnet test --verbosity normal
