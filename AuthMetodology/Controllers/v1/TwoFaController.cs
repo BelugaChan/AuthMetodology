@@ -34,6 +34,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// ```
         /// </remarks>
         /// <param name="id">Guid пользователя.</param>
+        /// <param name="cancellationToken">Токен прерывания операции.</param>
         /// <response code="200">Успешная активация. Возвращает "2FA enabled".</response>
         /// <response code="401">Пользователь с таким id не найден</response>
         /// <response code="409">Двухфакторка уже активирована.</response>
@@ -69,6 +70,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// ```
         /// </remarks>
         /// <param name="id">Guid пользователя.</param>
+        /// <param name="cancellationToken">Токен прерывания операции.</param>
         /// <response code="200">Успешная деактивация. Возвращает "2FA disabled".</response>
         /// <response code="401">Пользователь с таким id не найден</response>
         /// <response code="409">Двухфакторка уже деактивирована.</response>
@@ -121,12 +123,13 @@ namespace AuthMetodology.API.Controllers.v1
         /// ```
         /// </remarks>
         /// <param name="requestDto">Данные для проверки кода двухфакторной аутентификации.</param>
+        /// <param name="cancellationToken">Токен прерывания операции.</param>
         /// <response code="200">Успешная проверка. Возвращает AuthResponseDtoV1.</response>
         /// <response code="401">Пользователь с таким id не найден в системе</response>
         /// <response code="500">Прочие ошибки на стороне сервера</response>
         [MapToApiVersion(1)]
         [HttpPost("verify-2fa")]
-        public async Task<IActionResult> VerifyTwoFa([FromBody] TwoFaRequestDtoV1 requestDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> VerifyTwoFa([FromBody] VerificationCodeRequestDtoV1 requestDto, CancellationToken cancellationToken)
         {
             _ = logQueueService.SendEventAsync(
                new RabbitMqLogPublish
@@ -138,7 +141,7 @@ namespace AuthMetodology.API.Controllers.v1
                }, cancellationToken
             );
 
-            var authDto = await twoFaService.VerifyTwoFaCodeAsync(requestDto, cancellationToken);
+            var authDto = await twoFaService.VerifyCodeAsync(requestDto, "2fa", cancellationToken);
             return Ok(authDto);
         }
 
@@ -161,12 +164,13 @@ namespace AuthMetodology.API.Controllers.v1
         /// - Уведомление о том, что код был успешно отправлен.
         /// </remarks>
         /// <param name="requestDto">Данные для проверки кода двухфакторной аутентификации.</param>
+        /// <param name="cancellationToken">Токен прерывания операции.</param>
         /// <response code="200">Успешная отправка кода. Возвращает строку "Код отправлен повторно".</response>
         /// <response code="401">Пользователь с таким email не найден в системе</response>
         /// <response code="500">Прочие ошибки на стороне сервера</response>
         [MapToApiVersion(1)]
         [HttpPost("resend-2fa")]
-        public async Task<IActionResult> ResendTwoFa([FromBody] ReSendTwoFaRequestDtoV1 requestDto, CancellationToken cancellationToken)
+        public async Task<IActionResult> ResendTwoFaCode([FromBody] ReSendVerificationCodeRequestDtoV1 requestDto, CancellationToken cancellationToken)
         {
             _ = logQueueService.SendEventAsync(
                new RabbitMqLogPublish
@@ -178,7 +182,7 @@ namespace AuthMetodology.API.Controllers.v1
                }, cancellationToken
             );
 
-            await twoFaService.SendTwoFaAsync(requestDto, cancellationToken);
+            await twoFaService.ResendVerificationCodeAsync(requestDto, "2fa", cancellationToken);
             return Ok("Код отправлен повторно");
         }
     }
