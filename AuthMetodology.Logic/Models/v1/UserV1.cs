@@ -5,7 +5,7 @@ namespace AuthMetodology.Logic.Models.v1
 {
     public class UserV1
     {
-        private UserV1(Guid id, string passwordHash, string email, string refreshToken, DateTime refreshTokenExpiry, string idGoogle, bool is2FaEnabled, string resetPasswordToken, DateTime resetTokenPasswordExpire)
+        private UserV1(Guid id, string passwordHash, string email, string refreshToken, DateTime refreshTokenExpiry, string idGoogle, bool is2FaEnabled, bool isEmailConfirmed, string resetPasswordToken, DateTime resetTokenPasswordExpire)
         {
             Id = id;
             PasswordHash = passwordHash;
@@ -14,6 +14,7 @@ namespace AuthMetodology.Logic.Models.v1
             RefreshTokenExpiry = refreshTokenExpiry;
             IdGoogle = idGoogle;
             Is2FaEnabled = is2FaEnabled;
+            IsEmailConfirmed = isEmailConfirmed;
             ResetPasswordToken = resetPasswordToken;
             ResetPasswordTokenExpiry = resetTokenPasswordExpire;
         }
@@ -32,12 +33,14 @@ namespace AuthMetodology.Logic.Models.v1
 
         public bool Is2FaEnabled { get; set; }
 
+        public bool IsEmailConfirmed { get; set; }
+
         public UserRole UserRole { get; private set; } = UserRole.User;
 
         public string ResetPasswordToken { get; set; }
         public DateTime ResetPasswordTokenExpiry { get; set; }
 
-        public static UserV1 Create(Guid id, string passwordHash, string email, string refreshToken, DateTime refreshTokenExpiry, string idGoogle, bool is2FaEnabled, string resetPasswordToken, DateTime resetTokenPasswordExpire) =>
-            new UserV1(id, passwordHash, email, refreshToken, refreshTokenExpiry, idGoogle, is2FaEnabled, resetPasswordToken, resetTokenPasswordExpire);
+        public static UserV1 Create(Guid id, string passwordHash, string email, string refreshToken, DateTime refreshTokenExpiry, string idGoogle, bool is2FaEnabled, bool isEmailConfirmed, string resetPasswordToken, DateTime resetTokenPasswordExpire) =>
+            new UserV1(id, passwordHash, email, refreshToken, refreshTokenExpiry, idGoogle, is2FaEnabled, isEmailConfirmed, resetPasswordToken, resetTokenPasswordExpire);
     }
 }

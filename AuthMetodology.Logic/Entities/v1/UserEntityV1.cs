@@ -29,6 +29,9 @@ namespace AuthMetodology.Logic.Entities.v1
         [Column("is2FAEnabled")]
         public bool Is2FaEnabled { get; set; } = false;
 
+        [Column("isEmailConfirmed")]
+        public bool IsEmailConfirmed { get; set; } = false;
+
         [Column("userRole")]
         public UserRole UserRole { get; set; } = UserRole.User;
 
@@ -38,7 +41,7 @@ namespace AuthMetodology.Logic.Entities.v1
         [Column("resetPasswordTokenExpiry")]
         public DateTime ResetPasswordTokenExpiry { get; set; }
 
-        public static UserEntityV1 Create(Guid id,string passwordHash, string email, string refreshToken, DateTime refreshTokenExpiry, string idGoogle, bool is2FaEnabled, string resetPasswordToken, DateTime resetPasswordTokenExpiry)
+        public static UserEntityV1 Create(Guid id,string passwordHash, string email, string refreshToken, DateTime refreshTokenExpiry, string idGoogle, bool is2FaEnabled, bool isEmailConfirmed, string resetPasswordToken, DateTime resetPasswordTokenExpiry)
         {
             return new UserEntityV1() { Email = email, 
                                         Id = id, 
@@ -47,6 +50,7 @@ namespace AuthMetodology.Logic.Entities.v1
                                         RefreshTokenExpiry = refreshTokenExpiry,
                                         IdGoogle = idGoogle,
                                         Is2FaEnabled = is2FaEnabled,
+                                        IsEmailConfirmed = isEmailConfirmed,
                                         ResetPasswordToken = resetPasswordToken,
                                         ResetPasswordTokenExpiry = resetPasswordTokenExpiry};
         }
