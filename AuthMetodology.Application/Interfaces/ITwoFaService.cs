@@ -13,10 +13,10 @@ namespace AuthMetodology.Application.Interfaces
         Task EnableTwoFaStatusAsync(Guid id, CancellationToken cancellationToken = default);
         Task DisableTwoFaStatusAsync(Guid id, CancellationToken cancellationToken = default);
 
-        Task<AuthResponseDtoV1> VerifyTwoFaCodeAsync(TwoFaRequestDtoV1 requestDto, CancellationToken cancellationToken = default);
+        Task<AuthResponseDtoV1> VerifyCodeAsync(VerificationCodeRequestDtoV1 requestDto, string context = "2fa", CancellationToken cancellationToken = default);
 
-        Task SendTwoFaAsync(SendTwoFaRequestDtoV1 requestDto);
+        Task SendVerificationCodeAsync(SendVerificationCodeRequestDtoV1 requestDto, string context = "2fa");
 
-        Task SendTwoFaAsync(ReSendTwoFaRequestDtoV1 requestDto, CancellationToken cancellationToken = default);
+        Task ResendVerificationCodeAsync(ReSendVerificationCodeRequestDtoV1 requestDto, string context = "2fa",  CancellationToken cancellationToken = default);
     }
 }
