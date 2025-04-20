@@ -79,10 +79,10 @@ namespace AuthMetodology.Application.Services
             }
         }
         
-        public async Task SendTwoFaAsync(SendTwoFaRequestDtoV1 requestDto)
+        public async Task SendVerificationCodeAsync(SendVerificationCodeRequestDtoV1 requestDto, string context = "2fa")
         {
             var code = twoFaProvider.GenerateTwoFaCode();
-            string key = $"twoFa:{requestDto.Id}";
+            string key = $"{context}:{requestDto.Id}";
 
             await SendAndSaveData(key, requestDto.Id, code, requestDto.Mail);
             //var publishDtoForRabbit = RabbitMqTwoFaPublish.Create(requestDto.Id, code, requestDto.Mail);
@@ -93,13 +93,13 @@ namespace AuthMetodology.Application.Services
             //rabbitMqService.SendMessage(publishDtoForRabbit);
         }
 
-        public async Task SendTwoFaAsync(ReSendTwoFaRequestDtoV1 requestDto, CancellationToken cancellationToken = default)
+        public async Task ResendVerificationCodeAsync(ReSendVerificationCodeRequestDtoV1 requestDto, string context = "2fa", CancellationToken cancellationToken = default)
         {
             var userEntity = await userRepository.GetByEmailAsync(requestDto.Email, cancellationToken);
             if (userEntity is null)
                 throw new UserNotFoundException();
             var code = twoFaProvider.GenerateTwoFaCode();
-            string key = $"twoFa:{userEntity.Id}";
+            string key = $"{context}:{userEntity.Id}";
             await redisService.RemoveStringFromCacheAsync(key);
 
             await SendAndSaveData(key, userEntity.Id, code, requestDto.Email, cancellationToken);
@@ -121,9 +121,9 @@ namespace AuthMetodology.Application.Services
             _ = twoFaQueueService.SendEventAsync(publishDtoForRabbit, cancellationToken);
         }
 
-        public async Task<AuthResponseDtoV1> VerifyTwoFaCodeAsync(TwoFaRequestDtoV1 requestDto, CancellationToken cancellationToken = default)
+        public async Task<AuthResponseDtoV1> VerifyCodeAsync(VerificationCodeRequestDtoV1 requestDto, string context = "2fa",CancellationToken cancellationToken = default)
         {
-            var key = $"twoFa:{requestDto.Id}";
+            var key = $"{context}:{requestDto.Id}";
             var redisData = await redisService.GetStringFromCacheAsync<RedisTwoFa>(key);
             if (redisData is null)
                 throw new CacheNotFoundException();
