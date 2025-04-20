@@ -1,0 +1,35 @@
+on:
+    push:
+        branches: [dev]
+    pull_request:
+        branches: [main]
+
+jobs:
+    build:
+        runs-on: windows-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Setup .NET 8
+              uses: actions/setup-dotnet@v3
+              with: 
+                dotnet-version: '8.0.x'
+
+            - name: Restore dependencies
+              run: dotnet restore --verbosity quiet
+
+            - name: Build without warnings
+              run: dotnet build -- configuration Release --no-warnings  --no-restore
+
+            - name: Run tests
+              run: dotnet test --verbosity normal
+
+            - name: Upload test results
+              if: always()
+              uses: actions/upload-artifact@v3
+              with: 
+                name: test-results
+                path: '**/*.trx'
+            
+    
