@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using AuthMetodology.Application.Metrics;
 using AuthMetodology.Logic.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,12 +11,17 @@ namespace AuthMetodology.API.Controllers.v1
     [Route("api/v{version:apiVersion}/testAuth")]
     public class TestAuthController : ControllerBase
     {
+        private readonly MetricsRegistry metrics;
+        public TestAuthController(MetricsRegistry metrics)
+        {
+            this.metrics = metrics;
+        }
         /// <summary>
         /// Тестовый эндпоинт.
         /// </summary>
         /// <remarks>
         /// ### Пример запроса:
-        /// Get /api/v1/testAuth
+        /// GET /api/v1/testAuth
         /// ### Возвращает:
         /// - Данные пользователя в теле ответа.
         /// ```json
@@ -28,12 +34,27 @@ namespace AuthMetodology.API.Controllers.v1
         /// <response code="200">Успешный вызов эндпоинта. Access токен в куки корректен.</response>
         /// <response code="401">Пользователь не прошёл аутентификацию</response>
         /// <response code="500">Прочие ошибки на стороне сервера</response>
-        [Authorize]
+        [Authorize(Policy = "BearerOnly")]
         [MapToApiVersion(1)]
         [HttpGet]
         public IActionResult GetTestData()
         {
+            var startTime = DateTime.UtcNow;
             var data = new {Name = "Test", Surname = "Testovich" };
+            metrics.HttpRequestCounter.Add(1, 
+                new KeyValuePair<string, object?>("endpoint", "/api/v1/testAuth"),
+                new KeyValuePair<string, object?>("method", "GET"),
+                new KeyValuePair<string, object?>("status", 200)
+                );
+
+            var ellapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+
+            metrics.HttpResponseTimeMs.Record(ellapsed,
+                new KeyValuePair<string, object?>("endpoint", "/api/v1/testAuth"),
+                new KeyValuePair<string, object?>("method", "GET"),
+                new KeyValuePair<string, object?>("status", 200)
+                );
+
             return Ok(data);
         }
 
