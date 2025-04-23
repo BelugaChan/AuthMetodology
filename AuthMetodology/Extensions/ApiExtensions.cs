@@ -31,16 +31,15 @@ namespace AuthMetodology.API.Extensions
                     {
                         OnMessageReceived = context =>
                         {
-                            context.Token = context.Request.Cookies["tasty-cookies"];
+                            context.Token = context.Request.Cookies["access"];
 
                             return Task.CompletedTask;
                         }
                     };
                 });
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("AdminOnly", policy => policy.RequireRole(nameof(UserRole.Admin)));
-            });
+            services.AddAuthorizationBuilder()
+                .AddPolicy("AdminOnly", policy => policy.RequireRole(nameof(UserRole.Admin)))
+                .AddPolicy("BearerOnly", policy => { policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);policy.RequireAuthenticatedUser(); });
         }
     }
 }

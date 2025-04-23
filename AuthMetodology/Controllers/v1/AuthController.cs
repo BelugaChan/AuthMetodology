@@ -78,7 +78,7 @@ namespace AuthMetodology.API.Controllers.v1
             if (!ModelState.IsValid)
             {
                 await logQueueService.SendEventAsync(
-                    new RabbitMqLogPublish 
+                    new RabbitMqLogPublish
                     {
                         Message = $"ModelState is invalid in POST /api/v1/auth/register \n{ModelState}",
                         LogLevel = Serilog.Events.LogEventLevel.Error,
@@ -138,6 +138,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// ```
         /// </remarks>
         /// <param name="userDto">Данные для логина.</param>
+        /// <param name="cancellationToken">Токен прерывания операции.</param>
         /// <response code="200">Успешный логин. Возвращает AuthResponseDtoV1.</response>
         /// <response code="401">Некорректный пароль </response>
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
@@ -206,6 +207,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// ```
         /// </remarks>
         /// <param name="requestDto">Данные для обновления токенов.</param>
+        /// <param name="cancellationToken">Токен прерывания операции.</param>
         /// <response code="200">Успешное обновление токенов. Возвращает RefreshResponseDtoV1.</response>
         /// <response code="401">Пользователь не найден в бд, либо refreshToken некорректен или у него закончилось время жизни.</response>
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
@@ -263,6 +265,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// ```
         /// </remarks>
         /// <param name="requestDto">Данные для регистрации.</param>
+        /// <param name="cancellationToken">Токен прерывания операции.</param>
         /// <response code="200">Успешная регистрация. Возвращает AuthResponseDtoV1.</response>
         /// <response code="409">Пользователь с таким email уже существует.</response>
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
@@ -308,6 +311,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// ```
         /// </remarks>
         /// <param name="requestDto">Данные для логина.</param>
+        /// <param name="cancellationToken">Токен прерывания операции.</param>
         /// <response code="200">Успешное изменение пароля. Возвращает следующее сообщение: "Пароль успешно изменён! Вы будете перемещены на форму логина"</response>
         /// <response code="409">Время жизни токена для смены пароля истекло, либо же токен некорректен</response>
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
@@ -364,6 +368,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// ```
         /// </remarks>
         /// <param name="requestDto">Данные для отправки письма.</param>
+        /// <param name="cancellationToken">Токен прерывания операции.</param>
         /// <response code="200">Отправка письма. Внимание! ответ 200 ОК будет даже в случае отсутствия пользователя в системе. Возвращает следующее сообщение: "Если почта существует, письмо с сылкой для изменения пароля было отправлено"</response>
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         [MapToApiVersion(1)]
@@ -413,6 +418,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// ```
         /// </remarks>
         /// <param name="requestDto">Данные для логина.</param>
+        /// <param name="cancellationToken">Токен прерывания операции.</param>
         /// <response code="200">Успешный логин. Возвращает AuthResponseDtoV1.</response>
         /// <response code="401">Пользователь с таким email не найден или idToken некорректен</response>
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>

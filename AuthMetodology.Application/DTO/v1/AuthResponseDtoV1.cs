@@ -8,5 +8,7 @@
         public string RefreshToken { get; set; } = string.Empty;
 
         public bool RequiresTwoFa { get; set; } = false;
+
+        public bool RequiresConfirmEmail { get; set; } = false;
     }
 }

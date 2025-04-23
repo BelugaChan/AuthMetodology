@@ -3,6 +3,7 @@ using AuthMetodology.API.Extensions;
 using AuthMetodology.API.Interfaces;
 using AuthMetodology.API.Middleware;
 using AuthMetodology.Application.Interfaces;
+using AuthMetodology.Application.Metrics;
 using AuthMetodology.Application.Profiles.v1;
 using AuthMetodology.Application.Services;
 using AuthMetodology.Infrastructure.Hashers;
@@ -49,6 +50,7 @@ namespace AuthMetodology.API
 
             openTelemetryBuilder.WithMetrics(metrics =>
                 metrics
+                .AddMeter("ApiRequestMetrics")
                 .AddAspNetCoreInstrumentation()
                 .AddConsoleExporter()
                 .AddPrometheusExporter(o =>
@@ -59,7 +61,6 @@ namespace AuthMetodology.API
                 );
 
             // Add services to the container.
-            builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
@@ -81,6 +82,8 @@ namespace AuthMetodology.API
 
             builder.Services.AddApiAuthentication(builder.Services.BuildServiceProvider().GetRequiredService<IOptions<JWTOptions>>());
 
+            builder.Services.AddControllers();
+
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IJWTProvider, JWTProvider>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -90,7 +93,10 @@ namespace AuthMetodology.API
             builder.Services.AddScoped<ITwoFaProvider, TwoFaProvider>();
             builder.Services.AddScoped<ITwoFaService, TwoFaService>();
             builder.Services.AddScoped<IGoogleService, GoogleService>();
+            builder.Services.AddScoped<IResetPasswordService, ResetPasswordService>();
             builder.Services.AddHttpContextAccessor();
+
+            builder.Services.AddSingleton<MetricsRegistry>();
 
             builder.Services.AddSingleton<IRabbitMqPublisherBase<RabbitMqLogPublish>, LogQueueService>();
             builder.Services.AddSingleton<IRabbitMqPublisherBase<RabbitMqResetPasswordPublish>, ResetPasswordQueueService>();
@@ -114,7 +120,7 @@ namespace AuthMetodology.API
                 app.UseSwaggerUI();
             }
 
-            app.MapPrometheusScrapingEndpoint();
+            app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
             //app.UseHttpsRedirection();
 

@@ -1,16 +1,12 @@
 ﻿using AuthMetodology.Application.DTO.v1;
-using AuthMetodology.Logic.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AuthMetodology.Application.Interfaces
 {
     public interface IUserService
     {
-        Task<AuthResponseDtoV1> RegisterUserAsync(RegisterUserRequestDtoV1 user, CancellationToken cancellationToken = default);
+        Task<AuthResponseDtoV1> RegisterUserAsync(RegisterUserRequestDtoV1 userDto, CancellationToken cancellationToken = default);
+        Task InitiateRegisterUserAsync(RegisterUserRequestDtoV1 user, CancellationToken cancellationToken = default);
+        Task<AuthResponseDtoV1> ConfirmRegisterUserAsync(ConfirmRegistrationRequestDtoV1 user, CancellationToken cancellationToken = default);
 
         Task<AuthResponseDtoV1> LoginAsync(LoginUserRequestDtoV1 userDto, CancellationToken cancellationToken = default);
 

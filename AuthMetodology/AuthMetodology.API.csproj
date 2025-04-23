@@ -42,10 +42,10 @@
 
   <ItemGroup>
     <Reference Include="RabbitMqModel">
-      <HintPath>..\..\RabbitMqLib\RabbitMqModel\bin\Debug\net8.0\RabbitMqModel.dll</HintPath>
+      <HintPath>..\AuthMetodology.Infrastructure\DLL\RabbitMqModel.dll</HintPath>
     </Reference>
     <Reference Include="RabbitMqPublisher">
-      <HintPath>..\..\RabbitMqLib\RabbitMqPublisher\bin\Debug\net8.0\RabbitMqPublisher.dll</HintPath>
+      <HintPath>..\AuthMetodology.Infrastructure\DLL\RabbitMqPublisher.dll</HintPath>
     </Reference>
   </ItemGroup>
 
