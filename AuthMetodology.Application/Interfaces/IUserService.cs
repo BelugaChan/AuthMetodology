@@ -4,6 +4,7 @@ namespace AuthMetodology.Application.Interfaces
 {
     public interface IUserService
     {
+        Task<AuthResponseDtoV1> RegisterUserAsync(RegisterUserRequestDtoV1 userDto, CancellationToken cancellationToken = default);
         Task InitiateRegisterUserAsync(RegisterUserRequestDtoV1 user, CancellationToken cancellationToken = default);
         Task<AuthResponseDtoV1> ConfirmRegisterUserAsync(ConfirmRegistrationRequestDtoV1 user, CancellationToken cancellationToken = default);
 
