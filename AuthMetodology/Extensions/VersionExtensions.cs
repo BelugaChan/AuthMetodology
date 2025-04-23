@@ -10,7 +10,7 @@ namespace AuthMetodology.API.Extensions
             {
                 //Версия API по умолчанию
                 options.DefaultApiVersion = new ApiVersion(1);
-
+                
                 //Cпециальные HTTP-заголовки, в которых перечислены актуальные и устаревшие версии API
                 options.ReportApiVersions = true;
 
