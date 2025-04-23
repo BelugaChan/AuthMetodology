@@ -23,10 +23,9 @@ namespace AuthMetodology.API.Controllers.v1
         private readonly ICookieCreator cookieCreator;
         private readonly IRabbitMqPublisherBase<RabbitMqLogPublish> logQueueService;
         private readonly IResetPasswordService resetPasswordService;
-        private readonly ITwoFaService twoFaService;
         private readonly JWTOptions options;
 
-        public AuthController(IUserService userService, IGoogleService googleService,ICookieCreator cookieCreator, IRabbitMqPublisherBase<RabbitMqLogPublish> logQueueService,IOptions<JWTOptions> options, IResetPasswordService resetPasswordService, ITwoFaService twoFaService) 
+        public AuthController(IUserService userService, IGoogleService googleService,ICookieCreator cookieCreator, IRabbitMqPublisherBase<RabbitMqLogPublish> logQueueService,IOptions<JWTOptions> options, IResetPasswordService resetPasswordService) 
         {
             this.googleService = googleService;
             this.userService = userService;
@@ -34,7 +33,6 @@ namespace AuthMetodology.API.Controllers.v1
             this.logQueueService = logQueueService;
             this.options = options.Value;
             this.resetPasswordService = resetPasswordService;
-            this.twoFaService = twoFaService;
         }
 
         /// <summary>
@@ -42,7 +40,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// </summary>
         /// <remarks>
         /// ### Пример запроса:
-        /// POST /api/v1/auth/register-initiate
+        /// POST /api/v1/auth/register
         /// ```json
         /// {
         ///     "email": "user@example.com",
@@ -57,66 +55,6 @@ namespace AuthMetodology.API.Controllers.v1
         /// - Пароль и подтверждение должны совпадать.
         /// 
         /// ### Возвращает:
-        /// - Уведомление о том, что код подтверждения при регситрации был отправлен на почту
-        /// </remarks>
-        /// <param name="userDto">Данные для регистрации.</param>
-        /// <param name="cancellationToken">Токен прерывания операции.</param>
-        /// <response code="200">Успешная первичная регистрация. Возвращает строку: "Код для подтверждения почты был отправлен".</response>
-        /// <response code="400">Невалидные данные (например, пароли не совпадают или не соблюдаются прочие условия).</response>
-        /// <response code="409">Пользователь с таким email уже существует.</response>
-        /// <response code="500">Прочие ошибки на стороне сервера</response>
-        [MapToApiVersion(1)]
-        [HttpPost("register-initiate")]
-        public async Task<IActionResult> RegisterInitiate([FromBody] RegisterUserRequestDtoV1 userDto, CancellationToken cancellationToken)
-        {
-            if (!ModelState.IsValid)
-            {
-                await logQueueService.SendEventAsync(
-                    new RabbitMqLogPublish
-                    {
-                        Message = $"ModelState is invalid in POST /api/v1/auth/register-initiate \n{ModelState}",
-                        LogLevel = Serilog.Events.LogEventLevel.Error,
-                        ServiceName = "AuthMetodology",
-                        TimeStamp = DateTime.UtcNow
-                    }, cancellationToken
-
-                );
-                return BadRequest(ModelState);
-            }
-
-            _ = logQueueService.SendEventAsync(//запуск логирования параллельно (не дожидаясь завершения)
-                    new RabbitMqLogPublish
-                    {
-                        Message = "POST /api/v1/auth/register-initiate was called",
-                        LogLevel = Serilog.Events.LogEventLevel.Information,
-                        ServiceName = "AuthMetodology",
-                        TimeStamp = DateTime.UtcNow
-                    }, cancellationToken
-                );
-
-            await userService.InitiateRegisterUserAsync(userDto, cancellationToken);
-          
-            return Ok("Код для подтверждения почты был отправлен");
-        }
-
-        /// <summary>
-        /// Подтверждает регистрацию нового пользователя в системе.
-        /// </summary>
-        /// <remarks>
-        /// ### Пример запроса:
-        /// POST /api/v1/auth/register-confirm
-        /// ```json
-        /// {
-        ///     "email": "user@example.com",
-        ///     "registrationCode": "123456"
-        /// }
-        /// ```
-        /// 
-        /// ### Требования:
-        /// - Email: 5–30 символов, валидный формат.
-        /// - Код подтверждения: шестизначный код
-        /// 
-        /// ### Возвращает:
         /// - JWT-токены (access и refresh) в куках.
         /// - Данные пользователя в теле ответа.
         /// ```json
@@ -128,21 +66,21 @@ namespace AuthMetodology.API.Controllers.v1
         /// }
         /// ```
         /// </remarks>
-        /// <param name="userDto">Данные для подтверждения регистрации.</param>
-        /// <param name="cancellationToken">Токен прерывания операции.</param>
-        /// <response code="200">Успешное подтверждение регистрации. Возвращает AuthResponseDtoV1.</response>
-        /// <response code="409">Пользователь с таким email не существует.</response>
+        /// <param name="userDto">Данные для регистрации.</param>
+        /// <response code="200">Успешная регистрация. Возвращает AuthResponseDtoV1.</response>
+        /// <response code="400">Невалидные данные (например, пароли не совпадают или не соблюдаются прочие условия).</response>
+        /// <response code="409">Пользователь с таким email уже существует.</response>
         /// <response code="500">Прочие ошибки на стороне сервера</response>
         [MapToApiVersion(1)]
-        [HttpPost("register-confirm")]
-        public async Task<IActionResult> RegisterConfirm([FromBody] ConfirmRegistrationRequestDtoV1 userDto, CancellationToken cancellationToken)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterUserRequestDtoV1 userDto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
                 await logQueueService.SendEventAsync(
-                    new RabbitMqLogPublish 
+                    new RabbitMqLogPublish
                     {
-                        Message = $"ModelState is invalid in POST /api/v1/auth/register-confirm \n{ModelState}",
+                        Message = $"ModelState is invalid in POST /api/v1/auth/register \n{ModelState}",
                         LogLevel = Serilog.Events.LogEventLevel.Error,
                         ServiceName = "AuthMetodology",
                         TimeStamp = DateTime.UtcNow
@@ -155,37 +93,19 @@ namespace AuthMetodology.API.Controllers.v1
             _ = logQueueService.SendEventAsync(//запуск логирования параллельно (не дожидаясь завершения)
                     new RabbitMqLogPublish
                     {
-                        Message = "POST /api/v1/auth/register-confirm was called",
+                        Message = "POST /api/v1/auth/register was called",
                         LogLevel = Serilog.Events.LogEventLevel.Information,
                         ServiceName = "AuthMetodology",
                         TimeStamp = DateTime.UtcNow
                     }, cancellationToken
                 );
 
-            var authResponse = await userService.ConfirmRegisterUserAsync(userDto, cancellationToken);
+            var authResponse = await userService.RegisterUserAsync(userDto, cancellationToken);
 
             cookieCreator.CreateTokenCookie("access", authResponse.AccessToken, DateTime.UtcNow.AddMinutes(options.AccessTokenExpiryMinutes));
             cookieCreator.CreateTokenCookie("refresh", authResponse.RefreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays));
 
             return Ok(authResponse);
-        }
-
-        [MapToApiVersion(1)]
-        [HttpPost("resend-confirmation")]
-        public async Task<IActionResult> ResendConfirmationCode([FromBody] ReSendVerificationCodeRequestDtoV1 requestDto, CancellationToken cancellationToken)
-        {
-            _ = logQueueService.SendEventAsync(
-               new RabbitMqLogPublish
-               {
-                   Message = "POST /api/v1/twofa/resend-confirmation was called",
-                   LogLevel = Serilog.Events.LogEventLevel.Information,
-                   ServiceName = "AuthMetodology",
-                   TimeStamp = DateTime.UtcNow
-               }, cancellationToken
-            );
-
-            await twoFaService.ResendVerificationCodeAsync(requestDto, "confirm", cancellationToken);
-            return Ok("Код отправлен повторно");
         }
 
         /// <summary>
