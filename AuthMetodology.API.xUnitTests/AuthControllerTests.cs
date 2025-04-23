@@ -17,7 +17,6 @@ namespace AuthMetodology.API.xUnitTests
         private readonly Mock<ICookieCreator> cookieCreatorMock;
         private readonly Mock<IRabbitMqPublisherBase<RabbitMqLogPublish>> logQueueServiceMock;
         private readonly Mock<IResetPasswordService> resetPasswordServiceMock;
-        private readonly Mock<ITwoFaService> twoFaServiceMock;
         private readonly Mock<IOptions<JWTOptions>> optionsMock;
 
         public AuthControllerTests()
@@ -28,7 +27,6 @@ namespace AuthMetodology.API.xUnitTests
             logQueueServiceMock = new Mock<IRabbitMqPublisherBase<RabbitMqLogPublish>>();
             resetPasswordServiceMock = new Mock<IResetPasswordService>();
             optionsMock = new Mock<IOptions<JWTOptions>>();
-            twoFaServiceMock = new Mock<ITwoFaService>();
         }
 
         //[Fact]
@@ -140,8 +138,7 @@ namespace AuthMetodology.API.xUnitTests
                 cookieCreatorMock.Object,
                 logQueueServiceMock.Object,
                 optionsMock.Object,
-                resetPasswordServiceMock.Object,
-                twoFaServiceMock.Object
+                resetPasswordServiceMock.Object
             );
 
             var result = await controller.Login(fakeRequest, cancellationToken);
