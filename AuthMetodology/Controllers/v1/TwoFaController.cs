@@ -1,10 +1,11 @@
 ﻿using Asp.Versioning;
+using AuthMetodology.API.Interfaces;
 using AuthMetodology.Application.DTO.v1;
 using AuthMetodology.Application.Interfaces;
-using AuthMetodology.Infrastructure.Interfaces;
 using AuthMetodology.Infrastructure.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using RabbitMqPublisher.Interface;
 using System.Security.Claims;
 
@@ -16,11 +17,15 @@ namespace AuthMetodology.API.Controllers.v1
     public class TwoFaController : ControllerBase
     {
         private readonly ITwoFaService twoFaService;
+        private readonly ICookieCreator cookieCreator;
         private readonly IRabbitMqPublisherBase<RabbitMqLogPublish> logQueueService;
-        public TwoFaController(ITwoFaService twoFaService, IRabbitMqPublisherBase<RabbitMqLogPublish> logQueueService)
+        private readonly JWTOptions options;
+        public TwoFaController(ITwoFaService twoFaService, ICookieCreator cookieCreator, IRabbitMqPublisherBase<RabbitMqLogPublish> logQueueService, IOptions<JWTOptions> options)
         {
             this.twoFaService = twoFaService;
+            this.cookieCreator = cookieCreator;
             this.logQueueService = logQueueService;
+            this.options = options.Value;
         }
 
         /// <summary>
@@ -153,8 +158,11 @@ namespace AuthMetodology.API.Controllers.v1
                    TimeStamp = DateTime.UtcNow
                }, cancellationToken
             );
-
             var authDto = await twoFaService.VerifyCodeAsync(requestDto, "2fa", cancellationToken);
+
+            cookieCreator.CreateTokenCookie("access", authDto.AccessToken, DateTime.UtcNow.AddMinutes(options.AccessTokenExpiryMinutes));
+            cookieCreator.CreateTokenCookie("refresh", authDto.RefreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays));
+
             return Ok(authDto);
         }
 
