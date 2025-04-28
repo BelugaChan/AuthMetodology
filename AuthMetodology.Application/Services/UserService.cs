@@ -36,20 +36,24 @@ namespace AuthMetodology.Application.Services
         public async Task InitiateRegisterUserAsync(RegisterUserRequestDtoV1 userDto, CancellationToken cancellationToken = default)
         {
             var existUserEntity = await userRepository.GetByEmailAsync(userDto.Email, cancellationToken);
-
             if (existUserEntity is null)
             {
-                var hashedPassword = passwordHasher.Generate(userDto.Password);
+                var isUsernameExists = await userRepository.IsUsernameExists(userDto.UserName, cancellationToken);
+                if (!isUsernameExists)
+                {
+                    var hashedPassword = passwordHasher.Generate(userDto.Password);
 
-                //var refreshToken = jWtProvider.GenerateRefreshToken();
-                var newUser = UserV1.Create(Guid.NewGuid(), hashedPassword, userDto.Email, string.Empty, default, string.Empty, false, false, string.Empty, default);
-                //var token = jWtProvider.GenerateToken(newUser);
+                    //var refreshToken = jWtProvider.GenerateRefreshToken();
+                    var newUser = UserV1.Create(Guid.NewGuid(), hashedPassword, userDto.UserName, userDto.Email, string.Empty, default, string.Empty, false, false, string.Empty, default);
+                    //var token = jWtProvider.GenerateToken(newUser);
 
-                await userRepository.AddAsync(mapper.Map<UserEntityV1>(newUser), cancellationToken);
+                    await userRepository.AddAsync(mapper.Map<UserEntityV1>(newUser), cancellationToken);
 
-                await twoFaService.SendVerificationCodeAsync(new SendVerificationCodeRequestDtoV1 { Id = newUser.Id, Mail = newUser.Email }, "confirm");
+                    await twoFaService.SendVerificationCodeAsync(new SendVerificationCodeRequestDtoV1 { Id = newUser.Id, Mail = newUser.Email }, "confirm");
 
-                //return new AuthResponseDtoV1() { UserId = newUser.Id, AccessToken = token, RefreshToken = refreshToken };
+                    //return new AuthResponseDtoV1() { UserId = newUser.Id, AccessToken = token, RefreshToken = refreshToken };
+                }
+                throw new UsernameExistsException();
             }
             throw new ExistMailException();
         }
@@ -90,12 +94,14 @@ namespace AuthMetodology.Application.Services
                 var hashedPassword = passwordHasher.Generate(userDto.Password);
 
                 var refreshToken = jWtProvider.GenerateRefreshToken();
-                var newUser = UserV1.Create(Guid.NewGuid(), hashedPassword, userDto.Email, refreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays), string.Empty, false, true, string.Empty, default);
+                var newUser = UserV1.Create(Guid.NewGuid(), hashedPassword, userDto.UserName, userDto.Email, refreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays), string.Empty, false, true, string.Empty, default);
                 var token = jWtProvider.GenerateToken(newUser);
 
                 _ = userRegisterQueueService.SendEventAsync(new RabbitMqUserRegisterPublish
                 {
-                    UserId = newUser.Id
+                    UserId = newUser.Id,
+                    UserName = newUser.UserName,
+                    Email = newUser.Email,
                 }, cancellationToken);
 
                 await userRepository.AddAsync(mapper.Map<UserEntityV1>(newUser), cancellationToken);
