@@ -29,7 +29,7 @@ namespace AuthMetodology.API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-           
+            
 
             //add API versioning
             builder.Services.AddVersioning();
@@ -66,7 +66,7 @@ namespace AuthMetodology.API
             builder.Services.AddSwaggerGen(c =>
                 {
                     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API - V1", Version = "v1.0" });
-
+                    
                     var basePath = AppContext.BaseDirectory;
                     var xmlPath = Path.Combine(basePath, "AuthMetodology.xml");
                     c.IncludeXmlComments(xmlPath);
@@ -101,6 +101,7 @@ namespace AuthMetodology.API
             builder.Services.AddSingleton<IRabbitMqPublisherBase<RabbitMqLogPublish>, LogQueueService>();
             builder.Services.AddSingleton<IRabbitMqPublisherBase<RabbitMqResetPasswordPublish>, ResetPasswordQueueService>();
             builder.Services.AddSingleton<IRabbitMqPublisherBase<RabbitMqTwoFaPublish>, TwoFaQueueService>();
+            builder.Services.AddSingleton<IRabbitMqPublisherBase<RabbitMqUserRegisterPublish>, RegisterUserQueueService>();
 
             builder.Services.AddAutoMapper(typeof(UserProfileV1).Assembly);
 
