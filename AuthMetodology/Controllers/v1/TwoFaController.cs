@@ -6,6 +6,7 @@ using AuthMetodology.Infrastructure.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RabbitMqPublisher.Interface;
+using System.Security.Claims;
 
 namespace AuthMetodology.API.Controllers.v1
 {
@@ -36,7 +37,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// <param name="id">Guid пользователя.</param>
         /// <param name="cancellationToken">Токен прерывания операции.</param>
         /// <response code="200">Успешная активация. Возвращает "2FA enabled".</response>
-        /// <response code="401">Пользователь с таким id не найден</response>
+        /// <response code="401">Пользователь с таким id не найден или замечена попытка подмены id</response>
         /// <response code="409">Двухфакторка уже активирована.</response>
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         [MapToApiVersion(1)]
@@ -53,6 +54,12 @@ namespace AuthMetodology.API.Controllers.v1
                     TimeStamp = DateTime.UtcNow
                 }, cancellationToken
             );
+
+            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if(userId != id)
+            {
+                return Unauthorized("You can only enable 2FA for your own account.");
+            }
 
             await twoFaService.EnableTwoFaStatusAsync(id, cancellationToken);
             return Ok("2FA enabled");
@@ -72,7 +79,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// <param name="id">Guid пользователя.</param>
         /// <param name="cancellationToken">Токен прерывания операции.</param>
         /// <response code="200">Успешная деактивация. Возвращает "2FA disabled".</response>
-        /// <response code="401">Пользователь с таким id не найден</response>
+        /// <response code="401">Пользователь с таким id не найден или замечена попытка подмены id</response>
         /// <response code="409">Двухфакторка уже деактивирована.</response>
         /// <response code="500">Прочие ошибки на стороне сервера или ошибка при обновлении данных в БД</response>
         [MapToApiVersion(1)]
@@ -89,6 +96,12 @@ namespace AuthMetodology.API.Controllers.v1
                     TimeStamp = DateTime.UtcNow
                 }, cancellationToken
             );
+
+            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if (userId != id)
+            {
+                return Unauthorized("You can only enable 2FA for your own account.");
+            }
 
             await twoFaService.DisableTwoFaStatusAsync(id, cancellationToken);  
             return Ok("2FA disabled");

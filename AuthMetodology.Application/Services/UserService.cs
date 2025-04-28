@@ -9,11 +9,13 @@ using AuthMetodology.Persistence.Interfaces;
 using Microsoft.Extensions.Options;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using RabbitMqPublisher.Interface;
 
 namespace AuthMetodology.Application.Services
 {
     public class UserService : IUserService
     {
+        private readonly IRabbitMqPublisherBase<RabbitMqUserRegisterPublish> userRegisterQueueService;
         private readonly IUserRepository userRepository;
         private readonly IPasswordHasher passwordHasher;
         private readonly IJWTProvider jWtProvider;
@@ -21,8 +23,9 @@ namespace AuthMetodology.Application.Services
         private readonly IMapper mapper;
         private readonly ITwoFaService twoFaService;
 
-        public UserService(IUserRepository userRepository, IPasswordHasher passwordHasher, IJWTProvider jWtProvider, IOptions<JWTOptions> options,IMapper mapper, ITwoFaService twoFaService)
+        public UserService(IRabbitMqPublisherBase<RabbitMqUserRegisterPublish> userRegisterQueueService, IUserRepository userRepository, IPasswordHasher passwordHasher, IJWTProvider jWtProvider, IOptions<JWTOptions> options,IMapper mapper, ITwoFaService twoFaService)
         {
+            this.userRegisterQueueService = userRegisterQueueService;
             this.userRepository = userRepository;
             this.passwordHasher = passwordHasher;
             this.jWtProvider = jWtProvider;
@@ -89,6 +92,11 @@ namespace AuthMetodology.Application.Services
                 var refreshToken = jWtProvider.GenerateRefreshToken();
                 var newUser = UserV1.Create(Guid.NewGuid(), hashedPassword, userDto.Email, refreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays), string.Empty, false, true, string.Empty, default);
                 var token = jWtProvider.GenerateToken(newUser);
+
+                _ = userRegisterQueueService.SendEventAsync(new RabbitMqUserRegisterPublish
+                {
+                    UserId = newUser.Id
+                }, cancellationToken);
 
                 await userRepository.AddAsync(mapper.Map<UserEntityV1>(newUser), cancellationToken);
 

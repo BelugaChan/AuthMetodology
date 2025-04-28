@@ -1,8 +1,11 @@
 ﻿using Asp.Versioning;
 using AuthMetodology.Application.Metrics;
+using AuthMetodology.Infrastructure.Models;
 using AuthMetodology.Logic.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RabbitMqPublisher.Interface;
+using System.Threading;
 
 namespace AuthMetodology.API.Controllers.v1
 {
@@ -12,9 +15,11 @@ namespace AuthMetodology.API.Controllers.v1
     public class TestAuthController : ControllerBase
     {
         private readonly MetricsRegistry metrics;
-        public TestAuthController(MetricsRegistry metrics)
+        private readonly IRabbitMqPublisherBase<RabbitMqLogPublish> logQueueService;
+        public TestAuthController(MetricsRegistry metrics, IRabbitMqPublisherBase<RabbitMqLogPublish> logQueueService)
         {
             this.metrics = metrics;
+            this.logQueueService = logQueueService;
         }
         /// <summary>
         /// Тестовый эндпоинт.
@@ -37,8 +42,18 @@ namespace AuthMetodology.API.Controllers.v1
         [Authorize(Policy = "BearerOnly")]
         [MapToApiVersion(1)]
         [HttpGet]
-        public IActionResult GetTestData()
+        public IActionResult GetTestData(CancellationToken cancellationToken)
         {
+            _ = logQueueService.SendEventAsync(//запуск логирования параллельно (не дожидаясь завершения)
+                    new RabbitMqLogPublish
+                    {
+                        Message = "GET /api/v1/testAuth was called",
+                        LogLevel = Serilog.Events.LogEventLevel.Information,
+                        ServiceName = "AuthMetodology",
+                        TimeStamp = DateTime.UtcNow
+                    }, cancellationToken
+                );
+
             var startTime = DateTime.UtcNow;
             var data = new {Name = "Test", Surname = "Testovich" };
             metrics.HttpRequestCounter.Add(1, 

@@ -1,6 +1,4 @@
-﻿
-
-using System.Diagnostics.Metrics;
+﻿using System.Diagnostics.Metrics;
 
 namespace AuthMetodology.Application.Metrics
 {
@@ -11,6 +9,8 @@ namespace AuthMetodology.Application.Metrics
         public Counter<int> HttpRequestCounter { get; }
 
         public Histogram<double> HttpResponseTimeMs { get; }
+
+        public ObservableGauge<long> MemoryUsageBytes { get; }
 
         public MetricsRegistry(IMeterFactory meterFactory)
         {
@@ -27,15 +27,17 @@ namespace AuthMetodology.Application.Metrics
                 unit: "ms",
                 description: "HTTP response time in milliseconds"
             );
-        }
 
-        //public void IncrementRequestCounter(string endpointName, string method, int statusCode)
-        //{
-        //    HttpRequestCounter.Add(1, 
-        //        new KeyValuePair<string, object?>("endpoint", endpointName),
-        //        new KeyValuePair<string, object?>("method", method),
-        //        new KeyValuePair<string, object?>("status", statusCode));
-        //}
+            MemoryUsageBytes = meter.CreateObservableGauge<long>(
+                name: "process_memory_bytes",
+                unit: "bytes",
+                description: "Current memory usage of the process",
+                observeValues: () => [new Measurement<long>(
+                    value: Random.Shared.Next(),
+                    tags: new KeyValuePair<string, object?>("service", "auth-api")
+                    )]
+            );
+        }
 
         public void Dispose() => meter?.Dispose();
     }
