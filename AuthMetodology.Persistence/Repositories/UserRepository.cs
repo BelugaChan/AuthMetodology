@@ -16,6 +16,10 @@ namespace AuthMetodology.Persistence.Repositories
             await context.SaveChangesAsync(cancellationToken);
         }
 
+        public async Task<bool> IsUsernameExists(string username, CancellationToken cancellationToken)
+        {
+            return await context.Users.AsNoTracking().AnyAsync(i => i.UserName == username, cancellationToken);
+        }
         public async Task<UserEntityV1?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
         {
             var userEntity = await context.Users.AsNoTracking().FirstOrDefaultAsync(user => user.Email == email, cancellationToken);
