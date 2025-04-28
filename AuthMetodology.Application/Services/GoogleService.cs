@@ -48,7 +48,7 @@ namespace AuthMetodology.Application.Services
             if(existingUserEntity is null)
             {
                 var refreshToken = jWtProvider.GenerateRefreshToken();
-                var newUser = UserV1.Create(Guid.NewGuid(), string.Empty, payload.Email, refreshToken, DateTime.UtcNow.AddDays(optionsJwt.RefreshTokenExpiryDays), payload.Subject, false, true, string.Empty, default);
+                var newUser = UserV1.Create(Guid.NewGuid(), string.Empty, payload.Name, payload.Email, refreshToken, DateTime.UtcNow.AddDays(optionsJwt.RefreshTokenExpiryDays), payload.Subject, false, true, string.Empty, default);
                 var token = jWtProvider.GenerateToken(newUser);
 
                 await userRepository.AddAsync(mapper.Map<UserEntityV1>(newUser), cancellationToken);
