@@ -39,6 +39,7 @@ namespace AuthMetodology.API.Controllers.v2
         /// POST /api/v1/auth/register-initiate
         /// ```json
         /// {
+        ///     "userName": "nickname",
         ///     "email": "user@example.com",
         ///     "password": "SecurePassword123!",
         ///     "confirmPassword": "SecurePassword123!"
@@ -46,6 +47,7 @@ namespace AuthMetodology.API.Controllers.v2
         /// ```
         /// 
         /// ### Требования:
+        /// - Username: 5–30 символов, валидный формат.
         /// - Email: 5–30 символов, валидный формат.
         /// - Пароль: 8–20 символов, минимум 1 цифра, 1 спецсимвол, буквы в верхнем и нижнем регистре. Отсутствие кирилицы.
         /// - Пароль и подтверждение должны совпадать.
