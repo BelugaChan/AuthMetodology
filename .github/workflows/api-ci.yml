@@ -24,7 +24,7 @@ jobs:
             - name: Restore dependencies
               run: dotnet restore --verbosity quiet
 
-            - name: Build without warnings
+            - name: Build solution
               run: dotnet build --configuration Release --no-restore
 
             - name: Run tests
