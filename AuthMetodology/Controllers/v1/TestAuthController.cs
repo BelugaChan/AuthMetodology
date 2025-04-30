@@ -3,6 +3,7 @@ using AuthMetodology.Application.Metrics;
 using AuthMetodology.Infrastructure.Models;
 using AuthMetodology.Logic.Enums;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using RabbitMqPublisher.Interface;
 using System.Threading;
@@ -11,6 +12,7 @@ namespace AuthMetodology.API.Controllers.v1
 {
     [ApiVersion(1)]
     [ApiController]
+    [EnableCors("AllowFrontend")]
     [Route("api/v{version:apiVersion}/testAuth")]
     public class TestAuthController : ControllerBase
     {

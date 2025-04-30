@@ -10,11 +10,13 @@ using Asp.Versioning;
 using AuthMetodology.Application.DTO.v1;
 using AuthMetodology.Application.Interfaces;
 using RabbitMqPublisher.Interface;
+using Microsoft.AspNetCore.Cors;
 
 namespace AuthMetodology.API.Controllers.v1
 {
     [ApiVersion(1)]
     [ApiController]
+    [EnableCors("AllowFrontend")]
     [Route("api/v{version:apiVersion}/auth")]
     public class AuthController : ControllerBase
     {
@@ -43,6 +45,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// POST /api/v1/auth/register
         /// ```json
         /// {
+        ///     "userName": "nickname"
         ///     "email": "user@example.com",
         ///     "password": "SecurePassword123!",
         ///     "confirmPassword": "SecurePassword123!"
@@ -50,6 +53,7 @@ namespace AuthMetodology.API.Controllers.v1
         /// ```
         /// 
         /// ### Требования:
+        /// - Username: 5–30 символов, валидный формат.
         /// - Email: 5–30 символов, валидный формат.
         /// - Пароль: 8–20 символов, минимум 1 цифра, 1 спецсимвол, буквы в верхнем и нижнем регистре. Отсутствие кирилицы.
         /// - Пароль и подтверждение должны совпадать.
@@ -103,8 +107,7 @@ namespace AuthMetodology.API.Controllers.v1
             var authResponse = await userService.RegisterUserAsync(userDto, cancellationToken);
 
             cookieCreator.CreateTokenCookie("access", authResponse.AccessToken, DateTime.UtcNow.AddMinutes(options.AccessTokenExpiryMinutes));
-            cookieCreator.CreateTokenCookie("refresh", authResponse.RefreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays));
-
+            cookieCreator.CreateTokenCookie("refresh", authResponse.RefreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays));             
             return Ok(authResponse);
         }
 
@@ -284,7 +287,11 @@ namespace AuthMetodology.API.Controllers.v1
             );
 
             var payload = await googleService.VerifyGoogleTokenAsync(requestDto);
-            var response = await googleService.CreateGoogleUserAsync(payload);
+            var response = await googleService.CreateGoogleUserAsync(payload, cancellationToken);
+
+            cookieCreator.CreateTokenCookie("access", response.AccessToken, DateTime.UtcNow.AddMinutes(options.AccessTokenExpiryMinutes));
+            cookieCreator.CreateTokenCookie("refresh", response.RefreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays));
+
             return Ok(response);
         }
 
@@ -438,6 +445,10 @@ namespace AuthMetodology.API.Controllers.v1
 
             var payload = await googleService.VerifyGoogleTokenAsync(requestDto);
             var response = await googleService.LoginGoogleUserAsync(payload, cancellationToken);
+
+            cookieCreator.CreateTokenCookie("access", response.AccessToken, DateTime.UtcNow.AddMinutes(options.AccessTokenExpiryMinutes));
+            cookieCreator.CreateTokenCookie("refresh", response.RefreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays));
+
             return Ok(response);
         }
 

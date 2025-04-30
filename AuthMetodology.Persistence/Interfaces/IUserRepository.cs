@@ -6,6 +6,8 @@ namespace AuthMetodology.Persistence.Interfaces
     {
         Task AddAsync(UserEntityV1 user, CancellationToken cancellationToken = default);
 
+        Task<bool> IsUsernameExists(string username, CancellationToken cancellationToken);
+
         Task<UserEntityV1?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
 
         Task<UserEntityV1?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

@@ -148,7 +148,7 @@ namespace AuthMetodology.Application.Services
                 {
                     var token = jWtProvider.GenerateToken(user);
 
-                    return new AuthResponseDtoV1() { UserId = user.Id, AccessToken = token, RefreshToken = refreshToken, RequiresTwoFa = user.Is2FaEnabled };
+                    return new AuthResponseDtoV1() { UserId = user.Id, AccessToken = token, RefreshToken = refreshToken, RequiresTwoFa = user.Is2FaEnabled, UserRole=user.UserRole };
                 }
                 throw new DbUpdateException();
             }

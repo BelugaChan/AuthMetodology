@@ -37,6 +37,17 @@ namespace AuthMetodology.API.Extensions
                         }
                     };
                 });
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", builder =>
+                {
+                    builder.WithOrigins("http://localhost:8083")
+                        .AllowCredentials()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .WithExposedHeaders("Set-Cookie");
+                });
+            });
             services.AddAuthorizationBuilder()
                 .AddPolicy("AdminOnly", policy => policy.RequireRole(nameof(UserRole.Admin)))
                 .AddPolicy("BearerOnly", policy => { policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);policy.RequireAuthenticatedUser(); });

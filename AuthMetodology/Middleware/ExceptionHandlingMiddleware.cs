@@ -58,6 +58,7 @@ namespace AuthMetodology.API.Middleware
                 BrokerUnreachableException _ => new ExceptionResponse(HttpStatusCode.InternalServerError, exception.Message),
                 ExpiredResetPasswordTokenException _ => new ExceptionResponse(HttpStatusCode.Conflict, "Время жизни токена для смены пароля истекло. Попробуйте восстановить пароль снова."),
                 IncorrectResetPasswordTokenException _ => new ExceptionResponse(HttpStatusCode.Conflict, "Некорректный токен для смены пароля.."),
+                UsernameExistsException _ => new ExceptionResponse(HttpStatusCode.Conflict, "Пользователь с таким никнеймом уже существует"),
                 _ => new ExceptionResponse(HttpStatusCode.InternalServerError, $"Internal server error. Please retry later.\nEx trace: {exception}")
             };
 

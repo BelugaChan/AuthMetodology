@@ -1,4 +1,6 @@
-﻿namespace AuthMetodology.Application.DTO.v1
+﻿using AuthMetodology.Logic.Enums;
+
+namespace AuthMetodology.Application.DTO.v1
 {
     public class AuthResponseDtoV1
     {
@@ -10,5 +12,7 @@
         public bool RequiresTwoFa { get; set; } = false;
 
         public bool RequiresConfirmEmail { get; set; } = false;
+
+        public UserRole UserRole { get; set; } = UserRole.User;
     }
 }

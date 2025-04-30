@@ -14,6 +14,9 @@ namespace AuthMetodology.Logic.Entities.v1
         [Column("monkey")]
         public string PasswordHash { get; set; } = string.Empty;
 
+        [Column("userName")]
+        public string UserName { get; set; } = string.Empty;
+
         [Column("email")]
         public required string Email { get; set; }
 
@@ -41,10 +44,11 @@ namespace AuthMetodology.Logic.Entities.v1
         [Column("resetPasswordTokenExpiry")]
         public DateTime ResetPasswordTokenExpiry { get; set; }
 
-        public static UserEntityV1 Create(Guid id,string passwordHash, string email, string refreshToken, DateTime refreshTokenExpiry, string idGoogle, bool is2FaEnabled, bool isEmailConfirmed, string resetPasswordToken, DateTime resetPasswordTokenExpiry)
+        public static UserEntityV1 Create(Guid id,string passwordHash, string userName, string email, string refreshToken, DateTime refreshTokenExpiry, string idGoogle, bool is2FaEnabled, bool isEmailConfirmed, string resetPasswordToken, DateTime resetPasswordTokenExpiry)
         {
             return new UserEntityV1() { Email = email, 
                                         Id = id, 
+                                        UserName = userName,
                                         PasswordHash = passwordHash,
                                         RefreshToken = refreshToken,
                                         RefreshTokenExpiry = refreshTokenExpiry,

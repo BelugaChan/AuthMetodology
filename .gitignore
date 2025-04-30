@@ -301,3 +301,4 @@ redis-data/
 rabbit-data/
 grafana-data/
 Configs/
+CommonDockerCompose/
