@@ -41,10 +41,11 @@ namespace AuthMetodology.API.Extensions
             {
                 options.AddPolicy("AllowFrontend", builder =>
                 {
-                    builder.WithOrigins("http://mydomen.com")
+                    builder.WithOrigins("http://localhost:8083")
                         .AllowCredentials()
                         .AllowAnyHeader()
-                        .AllowAnyMethod();
+                        .AllowAnyMethod()
+                        .WithExposedHeaders("Set-Cookie");
                 });
             });
             services.AddAuthorizationBuilder()
