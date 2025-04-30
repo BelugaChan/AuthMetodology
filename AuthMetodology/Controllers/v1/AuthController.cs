@@ -10,11 +10,13 @@ using Asp.Versioning;
 using AuthMetodology.Application.DTO.v1;
 using AuthMetodology.Application.Interfaces;
 using RabbitMqPublisher.Interface;
+using Microsoft.AspNetCore.Cors;
 
 namespace AuthMetodology.API.Controllers.v1
 {
     [ApiVersion(1)]
     [ApiController]
+    [EnableCors("AllowFrontend")]
     [Route("api/v{version:apiVersion}/auth")]
     public class AuthController : ControllerBase
     {
@@ -105,8 +107,7 @@ namespace AuthMetodology.API.Controllers.v1
             var authResponse = await userService.RegisterUserAsync(userDto, cancellationToken);
 
             cookieCreator.CreateTokenCookie("access", authResponse.AccessToken, DateTime.UtcNow.AddMinutes(options.AccessTokenExpiryMinutes));
-            cookieCreator.CreateTokenCookie("refresh", authResponse.RefreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays));
-
+            cookieCreator.CreateTokenCookie("refresh", authResponse.RefreshToken, DateTime.UtcNow.AddDays(options.RefreshTokenExpiryDays));             
             return Ok(authResponse);
         }
 

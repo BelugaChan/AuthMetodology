@@ -4,6 +4,7 @@ using AuthMetodology.Application.DTO.v1;
 using AuthMetodology.Application.Interfaces;
 using AuthMetodology.Infrastructure.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using RabbitMqPublisher.Interface;
@@ -13,6 +14,7 @@ namespace AuthMetodology.API.Controllers.v1
 {
     [ApiVersion(1)]
     [ApiController]
+    [EnableCors("AllowFrontend")]
     [Route("api/v{version:apiVersion}/twofa")]
     public class TwoFaController : ControllerBase
     {
