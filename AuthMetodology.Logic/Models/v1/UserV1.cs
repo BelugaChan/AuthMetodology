@@ -27,7 +27,7 @@ namespace AuthMetodology.Logic.Models.v1
         public string ResetPasswordToken { get; set; }
         public DateTime ResetPasswordTokenExpiry { get; set; }
 
-        public static UserV1 Create(Guid id, string passwordHash, string userName, string email, string refreshToken, DateTime refreshTokenExpiry, string idGoogle, bool is2FaEnabled, bool isEmailConfirmed, string resetPasswordToken, DateTime resetPasswordTokenExpiry) =>
-            new UserV1() { Id=id,PasswordHash=passwordHash,UserName=userName,Email=email,RefreshToken=refreshToken,RefreshTokenExpiry=refreshTokenExpiry,IdGoogle=idGoogle,Is2FaEnabled=is2FaEnabled,IsEmailConfirmed=isEmailConfirmed,ResetPasswordToken=resetPasswordToken,ResetPasswordTokenExpiry= resetPasswordTokenExpiry };
+        public static UserV1 Create(Guid id, string passwordHash, string userName, string email, string refreshToken, DateTime refreshTokenExpiry, string idGoogle, bool is2FaEnabled, bool isEmailConfirmed, UserRole userRole, string resetPasswordToken, DateTime resetPasswordTokenExpiry) =>
+            new UserV1() { Id=id,PasswordHash=passwordHash,UserName=userName,Email=email,RefreshToken=refreshToken,RefreshTokenExpiry=refreshTokenExpiry,IdGoogle=idGoogle,Is2FaEnabled=is2FaEnabled,IsEmailConfirmed=isEmailConfirmed, UserRole=userRole, ResetPasswordToken=resetPasswordToken,ResetPasswordTokenExpiry= resetPasswordTokenExpiry };
     }
 }
