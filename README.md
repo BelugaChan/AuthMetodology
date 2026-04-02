@@ -33,11 +33,11 @@ AuthMetodology — это backend-сервис, реализующий базо�
 
 Проект построен по принципам многослойной архитектуры:
 
-AuthMetodology
-│
-├── API                # Контроллеры (входные точки)
-├── Application        # DTO, интерфейсы, бизнес-логика
-├── Infrastructure     # Модели, внешние сервисы
+AuthMetodology<br>
+│<br>
+├── API                # Контроллеры (входные точки)<br>
+├── Application        # DTO, интерфейсы, бизнес-логика<br>
+├── Infrastructure     # Модели, внешние сервисы<br>
 ├── xUnitTests         # Unit-тесты
 
 ---
