@@ -165,8 +165,156 @@ namespace AuthMetodology.API.xUnitTests
             Assert.Equal(fakeResponse.RefreshToken, returnedUserData.RefreshToken);
             Assert.Equal(fakeResponse.RequiresTwoFa, returnedUserData.RequiresTwoFa);
             Assert.Equal(fakeResponse.RequiresConfirmEmail, returnedUserData.RequiresConfirmEmail);
+        }
+        
+        [Fact]
+        public async Task Login_ReturnsBadRequest_WhenModelStateInvalid()
+        {
+            // Arrange
+            var controller = new AuthController(
+                userServiceMock.Object,
+                gogleServiceMock.Object,
+                cookieCreatorMock.Object,
+                logQueueServiceMock.Object,
+                optionsMock.Object,
+                resetPasswordServiceMock.Object
+            );
 
+            controller.ModelState.AddModelError("Email", "Required");
 
+            // Act
+            var result = await controller.Login(new LoginUserRequestDtoV1(), CancellationToken.None);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result);
+
+            logQueueServiceMock.Verify(x => x.SendEventAsync(
+                    It.Is<RabbitMqLogPublish>(m =>
+                        m.Message.Contains("ModelState is invalid in POST /api/v1/auth/login")),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            userServiceMock.Verify(x => x.LoginAsync(It.IsAny<LoginUserRequestDtoV1>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+        
+        [Fact]
+        public async Task Login_DoesNotCreateCookies_WhenTokensAreEmpty()
+        {
+            // Arrange
+            var fakeResponse = new AuthResponseDtoV1
+            {
+                UserId = Guid.NewGuid(),
+                AccessToken = "",
+                RefreshToken = ""
+            };
+
+            userServiceMock
+                .Setup(x => x.LoginAsync(It.IsAny<LoginUserRequestDtoV1>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(fakeResponse);
+
+            var controller = new AuthController(
+                userServiceMock.Object,
+                gogleServiceMock.Object,
+                cookieCreatorMock.Object,
+                logQueueServiceMock.Object,
+                optionsMock.Object,
+                resetPasswordServiceMock.Object
+            );
+
+            // Act
+            var result = await controller.Login(new LoginUserRequestDtoV1(), CancellationToken.None);
+
+            // Assert
+            Assert.IsType<OkObjectResult>(result);
+
+            cookieCreatorMock.Verify(x =>
+                    x.CreateTokenCookie(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>()),
+                Times.Never);
+        }
+        
+        [Fact]
+        public async Task Register_ReturnsOk_WhenSuccessful()
+        {
+            // Arrange
+            var request = new RegisterUserRequestDtoV1
+            {
+                Email = "test@test.com",
+                Password = "Password123!",
+                ConfirmPassword = "Password123!"
+            };
+
+            var response = new AuthResponseDtoV1
+            {
+                UserId = Guid.NewGuid(),
+                AccessToken = "access",
+                RefreshToken = "refresh"
+            };
+
+            optionsMock.Setup(x => x.Value).Returns(new JWTOptions
+            {
+                AccessTokenExpiryMinutes = 15,
+                RefreshTokenExpiryDays = 7
+            });
+
+            userServiceMock
+                .Setup(x => x.RegisterUserAsync(request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
+
+            var controller = new AuthController(
+                userServiceMock.Object,
+                gogleServiceMock.Object,
+                cookieCreatorMock.Object,
+                logQueueServiceMock.Object,
+                optionsMock.Object,
+                resetPasswordServiceMock.Object
+            );
+
+            // Act
+            var result = await controller.Register(request, CancellationToken.None);
+
+            // Assert
+            var ok = Assert.IsType<OkObjectResult>(result);
+            var data = Assert.IsType<AuthResponseDtoV1>(ok.Value);
+
+            Assert.Equal(response.UserId, data.UserId);
+
+            cookieCreatorMock.Verify(x =>
+                x.CreateTokenCookie("access", response.AccessToken, It.IsAny<DateTime>()), Times.Once);
+
+            cookieCreatorMock.Verify(x =>
+                x.CreateTokenCookie("refresh", response.RefreshToken, It.IsAny<DateTime>()), Times.Once);
+        }
+        
+        [Fact]
+        public async Task ResetPassword_ReturnsOk_WhenSuccessful()
+        {
+            // Arrange
+            var request = new ResetPasswordRequestDtoV1
+            {
+                Token = "token",
+                Password = "Password123!",
+                ConfirmPassword = "Password123!"
+            };
+
+            var controller = new AuthController(
+                userServiceMock.Object,
+                gogleServiceMock.Object,
+                cookieCreatorMock.Object,
+                logQueueServiceMock.Object,
+                optionsMock.Object,
+                resetPasswordServiceMock.Object
+            );
+
+            // Act
+            var result = await controller.ResetPassword(request, CancellationToken.None);
+
+            // Assert
+            var ok = Assert.IsType<OkObjectResult>(result);
+            Assert.Contains("Пароль успешно изменён", ok.Value.ToString());
+
+            resetPasswordServiceMock.Verify(x =>
+                    x.ResetPasswordAsync(request, It.IsAny<CancellationToken>()),
+                Times.Once);
         }
     }
 }
